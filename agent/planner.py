@@ -66,28 +66,42 @@ class Planner:
     # ── Internal checks ───────────────────────────────────────────────────────
 
     def _check_vpd_dependencies(self, plan: WorkflowPlan) -> list[str]:
-        """VPD stages require tas and rh outputs to already exist or be produced."""
+        """
+        VPD stages require tas and rh outputs to already exist or be produced earlier.
+
+        Checks two things:
+        1. If this is a vpd-only plan, tas and rh are not in plan.variables — warn
+           that they must be pre-existing on disk.
+        2. If the plan has multiple stages, the vpd stage must not appear first
+           (something must precede it to produce tas/rh inputs).
+        """
         issues: list[str] = []
         if "vpd" not in plan.variables:
             return issues
 
-        stage_names = {s.name for s in plan.stages}
-        # future_vpd workflow is the only stage type that computes VPD
-        has_vpd_stage = any("vpd" in s.name.lower() for s in plan.stages)
-        if not has_vpd_stage:
+        vpd_stage_idx = next(
+            (i for i, s in enumerate(plan.stages) if "vpd" in s.name.lower()), None
+        )
+        if vpd_stage_idx is None:
             return issues
 
-        # The vpd compute script needs tas and rh as inputs.
-        # If this plan also produces them (projection+vpd run) that's fine.
-        # If this is a vpd-only plan the inputs must already be on disk.
-        has_tas_stage = any("tas" in v for s in plan.stages for v in [s.name] + s.args)
-        has_rh_stage  = any("rh"  in v for s in plan.stages for v in [s.name] + s.args)
-
-        if not (has_tas_stage or has_rh_stage):
+        plan_vars = set(plan.variables)
+        missing_inputs = {"tas", "rh"} - plan_vars
+        if missing_inputs:
             issues.append(
-                "VPD compute stage detected but no tas/rh stages are in this plan. "
-                "Ensure tas and rh outputs are already on disk or add them to the request."
+                f"VPD compute stage detected but "
+                f"{', '.join(sorted(missing_inputs))} not in plan variables. "
+                "For a VPD-only run, ensure those outputs are already on disk "
+                "or add them to the --variables request."
             )
+
+        # For multi-stage plans, verify VPD stage is not ordered before its inputs.
+        if len(plan.stages) > 1 and vpd_stage_idx == 0:
+            issues.append(
+                "VPD compute stage is first in the plan — projection/merge stages "
+                "that produce tas and rh must be ordered before the VPD stage."
+            )
+
         return issues
 
     def _check_output_uniqueness(self, plan: WorkflowPlan) -> list[str]:
