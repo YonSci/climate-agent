@@ -73,7 +73,7 @@ from agent.task_router import TaskRouter
 from agent.planner import Planner
 from agent.state_store import StateStore
 from agent.orchestrator import Orchestrator
-from agent.artifact_manager import LOGS_DIR, run_report, cleanup_intermediates
+from agent.artifact_manager import LOGS_DIR, MANIFESTS_DIR, run_report, cleanup_intermediates
 
 
 def _setup_logging(run_id: str, level: str = "INFO") -> None:
@@ -151,7 +151,111 @@ def parse_args() -> argparse.Namespace:
         "--diagnostics-only", action="store_true",
         help="Skip pipeline stages; run diagnose_final_netcdf.py on existing final outputs only",
     )
+    parser.add_argument(
+        "--resume-latest", action="store_true",
+        help="Auto-resume the most recent run that recorded at least one failure",
+    )
     return parser.parse_args()
+
+
+def _run_export_mode() -> int | None:
+    """
+    Handle --export-run RUN_ID --export-to DIR early exit.
+
+    Reads the named run manifest, copies every output file that still exists
+    on disk to DIR, and writes a delivery_manifest.json into DIR summarising
+    what was exported.  Returns exit code when handled, None to continue.
+    """
+    if "--export-run" not in sys.argv:
+        return None
+
+    import shutil
+    args = sys.argv[1:]
+    try:
+        run_id = args[args.index("--export-run") + 1]
+    except (ValueError, IndexError):
+        print("ERROR: --export-run requires a RUN_ID argument", file=sys.stderr)
+        return 1
+
+    export_dir: Path | None = None
+    try:
+        export_dir = Path(args[args.index("--export-to") + 1])
+    except (ValueError, IndexError):
+        print("ERROR: --export-run requires --export-to DIR", file=sys.stderr)
+        return 1
+
+    manifests_dir = MANIFESTS_DIR
+    try:
+        mi = args.index("--manifests-dir")
+        manifests_dir = Path(args[mi + 1])
+    except (ValueError, IndexError):
+        pass
+
+    manifest_file = manifests_dir / f"{run_id}.json"
+    if not manifest_file.exists():
+        print(f"ERROR: manifest not found: {manifest_file}", file=sys.stderr)
+        return 1
+
+    with open(manifest_file) as f:
+        manifest = json.load(f)
+
+    output_files = manifest.get("summary", {}).get("output_files", [])
+    if not output_files:
+        print(f"No output files recorded in {run_id}.")
+        return 0
+
+    export_dir.mkdir(parents=True, exist_ok=True)
+    copied: list[dict] = []
+    skipped: list[str] = []
+
+    for src_str in output_files:
+        src = Path(src_str)
+        if not src.exists():
+            skipped.append(src_str)
+            continue
+        dst = export_dir / src.name
+        shutil.copy2(src, dst)
+        copied.append({"source": src_str, "destination": str(dst),
+                       "size_bytes": dst.stat().st_size})
+
+    delivery = {
+        "run_id": run_id,
+        "exported_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+        "destination": str(export_dir),
+        "copied": len(copied),
+        "skipped": len(skipped),
+        "files": copied,
+        "missing_sources": skipped,
+        "request": manifest.get("request", {}),
+    }
+    delivery_path = export_dir / "delivery_manifest.json"
+    with open(delivery_path, "w") as f:
+        json.dump(delivery, f, indent=2, default=str)
+
+    print(f"Exported {len(copied)} file(s) to {export_dir}/")
+    if skipped:
+        print(f"  Skipped {len(skipped)} missing source file(s)")
+    print(f"  Delivery manifest: {delivery_path}")
+    return 0 if not skipped or copied else (1 if not copied else 0)
+
+
+def _find_latest_failed_run() -> str | None:
+    """
+    Return the run_id of the most recent manifest that recorded at least one
+    FAILED stage, or None if no such run exists.
+
+    Used by --resume-latest to auto-select the resume target.
+    """
+    manifests = sorted(MANIFESTS_DIR.glob("run_*.json"), reverse=True)
+    for m in manifests:
+        try:
+            with open(m) as f:
+                data = json.load(f)
+            if data.get("summary", {}).get("failed", 0) > 0:
+                return data["run_id"]
+        except Exception:
+            continue
+    return None
 
 
 def _run_list_runs_mode() -> int | None:
@@ -268,6 +372,13 @@ def _run_validate_mode() -> int | None:
         sys.argv = orig_argv
 
 
+def _progress(msg: str) -> None:
+    """Print a timestamped progress line to stdout, bypassing log-level gating."""
+    from datetime import datetime
+    ts = datetime.now().strftime("%H:%M:%S")
+    print(f"[{ts}] {msg}", flush=True)
+
+
 def _run_country_plan(
     plan,
     orch,
@@ -277,7 +388,11 @@ def _run_country_plan(
     outputs: list[str] = []
     diag_files: list[str] = []
     qc_stats: dict = {}
-    for stage in plan.stages:
+    n = len(plan.stages)
+    for i, stage in enumerate(plan.stages, 1):
+        country_str = ",".join(plan.countries)
+        var_str     = ",".join(plan.variables)
+        _progress(f"Stage {i}/{n}: {stage.name} | {country_str} | {var_str}")
         ok = orch.run_tool(
             stage=stage.name,
             script_name=stage.script,
@@ -287,6 +402,8 @@ def _run_country_plan(
             scenario=plan.scenario,
             expected_outputs=stage.expected_outputs,
         )
+        status = "OK" if ok else "FAIL"
+        _progress(f"Stage {i}/{n}: {stage.name} -> {status}")
         if not ok:
             return False, outputs, diag_files, qc_stats
         outputs.extend(
@@ -304,6 +421,10 @@ def main() -> int:
     if code is not None:
         return code
 
+    code = _run_export_mode()
+    if code is not None:
+        return code
+
     code = _run_validate_mode()
     if code is not None:
         return code
@@ -313,6 +434,14 @@ def main() -> int:
     if args.workers < 1:
         print(f"ERROR: --workers must be at least 1 (got {args.workers})", file=sys.stderr)
         return 1
+
+    if args.resume_latest:
+        found = _find_latest_failed_run()
+        if found:
+            args.resume = found
+        else:
+            print("--resume-latest: no failed run found in runs/manifests/ — starting fresh")
+            args.resume = None
 
     run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     _setup_logging(run_id, args.log_level)
@@ -462,7 +591,11 @@ def main() -> int:
                 all_diag_files.extend(c_diags)
                 all_qc_stats.update(c_qc)
     else:
-        for stage in plan.stages:
+        n = len(plan.stages)
+        for i, stage in enumerate(plan.stages, 1):
+            country_str = ",".join(plan.countries)
+            var_str     = ",".join(plan.variables)
+            _progress(f"Stage {i}/{n}: {stage.name} | {country_str} | {var_str}")
             logger.info(f"Executing stage: {stage.name}")
             success = orch.run_tool(
                 stage=stage.name,
@@ -473,6 +606,8 @@ def main() -> int:
                 scenario=plan.scenario,
                 expected_outputs=stage.expected_outputs,
             )
+            status = "OK" if success else "FAIL"
+            _progress(f"Stage {i}/{n}: {stage.name} -> {status}")
             if not success:
                 logger.error(f"Stage '{stage.name}' FAILED — aborting remaining stages")
                 all_ok = False
