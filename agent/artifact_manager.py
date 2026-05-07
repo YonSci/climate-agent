@@ -6,11 +6,32 @@ Never construct file paths manually outside this module.
 """
 
 from __future__ import annotations
+import logging
 from pathlib import Path
 import yaml
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 _CONFIG_PATH  = _PROJECT_ROOT / "agent_config.yaml"
+_logger = logging.getLogger(__name__)
+
+_REQUIRED_SECTIONS = ["paths", "countries", "reference_grid", "compression", "retry", "validation", "cleanup"]
+_REQUIRED_PATHS    = ["data_raw", "data_intermediate", "data_final", "data_diagnostics",
+                      "runs_manifests", "runs_logs", "scripts", "boundaries"]
+
+
+def _validate_config(cfg: dict) -> None:
+    missing_sections = [k for k in _REQUIRED_SECTIONS if k not in cfg]
+    if missing_sections:
+        _logger.warning(
+            f"agent_config.yaml is missing expected top-level sections: {missing_sections}. "
+            "Some agent features may not work correctly."
+        )
+    missing_paths = [k for k in _REQUIRED_PATHS if k not in cfg.get("paths", {})]
+    if missing_paths:
+        _logger.warning(
+            f"agent_config.yaml [paths] section is missing keys: {missing_paths}. "
+            "File path resolution may fail."
+        )
 
 
 def _load_config() -> dict:
@@ -30,6 +51,7 @@ def _load_config() -> dict:
 
 
 _cfg = _load_config()
+_validate_config(_cfg)
 _p   = _cfg["paths"]
 
 

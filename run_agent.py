@@ -56,6 +56,13 @@ def _ensure_codes_alias() -> None:
             ["cmd", "/c", "mklink", "/J", str(codes), str(scripts)],
             check=True, capture_output=True,
         )
+    if not codes.exists():
+        raise RuntimeError(
+            f"Failed to create codes/ → scripts/ alias at {codes}. "
+            "The workflow scripts require this directory. Create it manually:\n"
+            "  Windows: mklink /J codes scripts\n"
+            "  Unix:    ln -s scripts codes"
+        )
 
 
 _ensure_codes_alias()
@@ -139,6 +146,10 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Resume from a previous run: skip stages already recorded as SUCCESS "
              "in runs/manifests/{RUN_ID}.json",
+    )
+    parser.add_argument(
+        "--diagnostics-only", action="store_true",
+        help="Skip pipeline stages; run diagnose_final_netcdf.py on existing final outputs only",
     )
     return parser.parse_args()
 
@@ -310,13 +321,14 @@ def main() -> int:
     logger.info(f"=== Climate Agent — {run_id} ===")
 
     request = {
-        "countries":     args.countries,
-        "variables":     args.variables,
-        "scenario":      args.scenario,
-        "period":        args.period,
-        "quality_level": args.mode,
-        "diagnostics":   args.diagnostics,
-        "workers":       args.workers,
+        "countries":        args.countries,
+        "variables":        args.variables,
+        "scenario":         args.scenario,
+        "period":           args.period,
+        "quality_level":    args.mode,
+        "diagnostics":      args.diagnostics,
+        "workers":          args.workers,
+        "diagnostics_only": args.diagnostics_only,
     }
 
     # ── Request validation ────────────────────────────────────────────────────
@@ -398,6 +410,34 @@ def main() -> int:
     all_outputs: list[str] = []
     all_diag_files: list[str] = []
     all_qc_stats: dict = {}
+
+    # ── Diagnostics-only path ─────────────────────────────────────────────────
+    if plan.diagnostics_only:
+        all_expected = [o for stage in plan.stages for o in stage.expected_outputs]
+        present  = [o for o in all_expected if o.path.exists()]
+        missing  = [o for o in all_expected if not o.path.exists()]
+        for o in missing:
+            logger.warning(f"Output not found for diagnostics — skipping: {o.path}")
+        if not present:
+            logger.error(
+                "No existing final outputs found to run diagnostics on. "
+                "Run the full pipeline first, or check that --period/--scenario match "
+                "the files already on disk."
+            )
+            store.close_run(output_files=[], diagnostic_files=[])
+            return 1
+        logger.info(f"Diagnostics-only: running on {len(present)} existing output(s)")
+        all_diag_files, all_qc_stats = orch.run_diagnostics(run_id, present)
+        store.close_run(
+            output_files=[str(o.path) for o in present],
+            diagnostic_files=all_diag_files,
+            qc_stats=all_qc_stats or None,
+        )
+        report_path = run_report(run_id)
+        with open(report_path, "w") as f:
+            json.dump(store._manifest.get("summary", {}), f, indent=2, default=str)
+        logger.info(f"Diagnostics complete. Report: {report_path}")
+        return 0
 
     if args.workers > 1 and len(plan.countries) > 1:
         # Fan out one subprocess per country and run them in parallel.

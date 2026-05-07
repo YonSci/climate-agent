@@ -62,7 +62,7 @@ class Stage:
 @dataclass
 class WorkflowPlan:
     """Ordered list of stages produced by TaskRouter.route()."""
-    run_type: str               # historical | projection | future_vpd | projection+vpd
+    run_type: str               # historical | projection | future_vpd | projection+vpd | diagnostics
     countries: list[str]        # short codes
     variables: list[str]
     scenario: str
@@ -71,6 +71,7 @@ class WorkflowPlan:
     diagnostics: bool
     workers: int
     stages: list[Stage] = field(default_factory=list)
+    diagnostics_only: bool = False  # skip pipeline stages; run diagnose_final_netcdf.py on existing outputs
 
     def split_by_country(self) -> "list[WorkflowPlan]":
         """
@@ -140,6 +141,9 @@ class TaskRouter:
         workers   = int(request.get("workers", 1))
 
         validate_request(countries, variables, scenario, period)
+
+        if request.get("diagnostics_only"):
+            return self._diagnostics_only(countries, variables, scenario, period, workers)
 
         if scenario == "historical":
             return self._historical(countries, variables, period, fast_mode, diag, workers)
@@ -235,6 +239,37 @@ class TaskRouter:
                 args=args,
                 expected_outputs=projection_outputs(countries, variables, scenario, period),
             )],
+        )
+
+    def _diagnostics_only(self, countries, variables, scenario,
+                          period, workers) -> WorkflowPlan:
+        """
+        Build a WorkflowPlan that locates existing final outputs and runs
+        diagnose_final_netcdf.py on them without re-executing any pipeline stages.
+
+        The stages list is populated with expected_outputs so the orchestrator
+        can locate the files; the diagnostics_only flag tells run_agent to skip
+        run_tool() and call run_diagnostics() directly.
+        """
+        if scenario == "historical":
+            base = self._historical(countries, variables, period, False, True, workers)
+        elif "vpd" in variables and scenario != "historical":
+            vpd_countries = countries
+            base = self._future_vpd(vpd_countries, scenario, period, False, True, workers)
+        else:
+            base = self._projection(countries, variables, scenario, period, False, True, workers)
+
+        return WorkflowPlan(
+            run_type="diagnostics",
+            countries=countries,
+            variables=variables,
+            scenario=scenario,
+            period=period,
+            fast_mode=False,
+            diagnostics=True,
+            diagnostics_only=True,
+            workers=workers,
+            stages=base.stages,
         )
 
     def _future_vpd(self, countries, scenario, period,

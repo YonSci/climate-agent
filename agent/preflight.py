@@ -108,12 +108,19 @@ def check_scripts() -> dict[str, str]:
 
 def check_source_dirs(request: dict) -> dict[str, str]:
     """
-    Verify that source data directories exist for the requested
-    country/variable/scenario combinations.
+    Verify that source data files exist for the requested country/variable/scenario.
+
+    For historical runs, uses the agent/connectors availability checkers to confirm
+    at least one NetCDF file is present (not just that the directory exists).
+    Historical sources can be auto-downloaded; projection (ISIMIP) data cannot.
     """
+    import agent.connectors.agera5 as _agera5_conn
+    import agent.connectors.chirps as _chirps_conn
+
     countries  = request["countries"]
     variables  = request["variables"]
     scenario   = request["scenario"]
+    period     = request.get("period", [1981, 2025])
     data_root  = ROOT / "data"
     results: dict[str, str] = {}
 
@@ -122,12 +129,22 @@ def check_source_dirs(request: dict) -> dict[str, str]:
 
         if scenario == "historical":
             for var in variables:
-                src_template = HIST_SOURCE_DIRS.get(var)
-                if src_template is None:
-                    continue
-                d = data_root / src_template.format(country=long)
                 key = f"{country}/{var}/{'chirps' if var == 'pr' else 'agera5'}"
-                results[key] = "OK" if d.exists() else f"MISSING: {d}"
+                if var == "pr":
+                    if _chirps_conn.is_source_available(country, int(period[0]), int(period[1])):
+                        results[key] = "OK"
+                    else:
+                        src_dir = _chirps_conn.source_dir(country)
+                        results[key] = f"MISSING: {src_dir} (auto-download available)"
+                elif var in ("rh", "tas", "vpd"):
+                    if _agera5_conn.is_source_available(country, var):
+                        results[key] = "OK"
+                    else:
+                        try:
+                            src_dir = _agera5_conn.source_dir(country, var)
+                        except ValueError:
+                            src_dir = data_root / HIST_SOURCE_DIRS.get(var, var).format(country=long)
+                        results[key] = f"MISSING: {src_dir} (auto-download available)"
         else:
             script_scenario = SCENARIO_TO_SCRIPT[scenario]
             for var in variables:
@@ -191,10 +208,18 @@ def run_preflight(request: dict) -> PreflightReport:
     sources = check_source_dirs(request)
     for key, status in sources.items():
         if status != "OK":
-            report.errors.append(
-                f"Source data missing [{key}]: {status}. "
-                "Run the appropriate download script or place source files manually."
-            )
+            if "auto-download available" in status:
+                # Historical AgERA5/CHIRPS — orchestrator will trigger download automatically
+                report.warnings.append(
+                    f"Source data not yet present [{key}]: {status}. "
+                    "The orchestrator will attempt auto-download before merge stages."
+                )
+            else:
+                # ISIMIP projection data — must be placed manually
+                report.errors.append(
+                    f"Source data missing [{key}]: {status}. "
+                    "ISIMIP projection files must be placed manually before running."
+                )
 
     if report.has_errors:
         logger.error(f"Preflight failed:\n{report}")

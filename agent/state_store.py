@@ -26,9 +26,14 @@ try:
     with open(_SCHEMA_PATH) as _f:
         _MANIFEST_SCHEMA = json.load(_f)
     _HAS_SCHEMA = True
-except Exception:
+except Exception as _schema_exc:
     _HAS_SCHEMA = False
     _MANIFEST_SCHEMA = {}
+    import logging as _log
+    _log.getLogger(__name__).warning(
+        f"run_manifest_schema.json could not be loaded — manifests will not be "
+        f"validated against schema: {_schema_exc}"
+    )
 
 from agent.artifact_manager import manifest_path, log_path
 
@@ -132,6 +137,18 @@ class StateStore:
             )
         with open(prior_path) as f:
             prior = json.load(f)
+
+        # Guard: refuse to resume a run with a different scenario — SUCCESS stages
+        # from a historical run are meaningless in a projection context and vice-versa.
+        prior_req = prior.get("request", {})
+        prior_scenario = prior_req.get("scenario")
+        new_scenario   = request.get("scenario")
+        if prior_scenario and new_scenario and prior_scenario != new_scenario:
+            raise ValueError(
+                f"Cannot resume {prior_run_id}: scenario mismatch "
+                f"(prior={prior_scenario!r}, requested={new_scenario!r}). "
+                "Use --resume only to continue a run with the same scenario."
+            )
 
         carried = [s for s in prior.get("stages", []) if s["status"] == "SUCCESS"]
         store._manifest["stages"].extend(carried)

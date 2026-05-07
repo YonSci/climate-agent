@@ -87,12 +87,41 @@ def _run_output_validation(
         results[exp.path.name] = check
         if any(v == "FAIL" for v in check.values() if isinstance(v, str)):
             all_passed = False
+            fail_details = []
+            for k, v in check.items():
+                if v == "FAIL":
+                    detail = check.get(f"{k}_detail", "")
+                    fail_details.append(f"{k}={v}" + (f" ({detail})" if detail else ""))
             logger.warning(
                 f"Post-stage validation FAIL on {exp.path.name}: "
-                + ", ".join(f"{k}={v}" for k, v in check.items() if v == "FAIL")
+                + ", ".join(fail_details)
             )
 
     return results, all_passed
+
+
+def _classify_subprocess_error(script_name: str, stderr: str, attempts: int) -> str:
+    """
+    Return a human-readable error summary for a failed subprocess.
+
+    Inspects stderr for known error patterns and prepends an actionable hint.
+    """
+    low = stderr.lower()
+    if "no such file or directory" in low or "filenotfounderror" in low:
+        hint = "Missing input file — check that source data is present before running."
+    elif "permission denied" in low:
+        hint = "Permission error — ensure the output directory is writable."
+    elif "connection" in low or "timeout" in low or "ssl" in low:
+        hint = "Network/API error — check CDS credentials and internet connectivity."
+    elif "memoryerror" in low or "out of memory" in low:
+        hint = "Out of memory — try reducing --max-workers or processing fewer years."
+    elif "grid" in low and ("match" in low or "shape" in low or "resolution" in low):
+        hint = "Grid mismatch — verify the reference grid matches the source data resolution."
+    elif "units" in low and ("expected" in low or "found" in low or "mismatch" in low):
+        hint = "Unit mismatch — check variable units in the source NetCDF against expected values."
+    else:
+        hint = f"Tool {script_name} failed after {attempts} attempt(s)."
+    return f"{hint} Last stderr: {stderr[-300:]}"
 
 
 class Orchestrator:
@@ -272,7 +301,12 @@ class Orchestrator:
                 if ok:
                     logger.info(f"  downloaded {label} ({size / 1024 / 1024:.1f} MB)")
                 else:
-                    logger.warning(f"  download FAILED [{label}]: {detail}")
+                    cmd_str = " ".join(str(x) for x in futures[fut][0])
+                    logger.warning(
+                        f"  download FAILED [{label}]: {detail}\n"
+                        f"  Command was: {cmd_str}\n"
+                        f"  Re-run manually: python {cmd_str.split('python ', 1)[-1]}"
+                    )
 
     def run_tool(self, *,
                  stage: str,
@@ -373,10 +407,10 @@ class Orchestrator:
                             all_valid = False
                         validation_summary["_grid_consistency"] = consistency
 
-                # Strict mode aborts on any FAIL; fast mode records WARNING only
+                # Strict mode marks FAILED and aborts; fast mode records WARNING only
                 effective_status = (
                     "SUCCESS" if all_valid
-                    else ("WARNING" if self.fast_mode else "WARNING")
+                    else ("WARNING" if self.fast_mode else "FAILED")
                 )
 
                 self.store.record_stage(
@@ -403,6 +437,7 @@ class Orchestrator:
                 break
             wait_before_retry(attempt)
 
+        error_message = _classify_subprocess_error(script_name, stderr_tail, attempt)
         self.store.record_stage(
             stage=stage,
             country=country_key,
@@ -414,8 +449,7 @@ class Orchestrator:
             attempt=attempt,
             stdout_tail=stdout_tail,
             stderr_tail=stderr_tail,
-            error_message=f"Tool {script_name} failed after {attempt} attempt(s). "
-                          f"Last stderr: {stderr_tail[-300:]}"
+            error_message=error_message,
         )
         return False
 

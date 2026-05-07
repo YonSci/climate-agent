@@ -6,11 +6,11 @@ Path conventions here mirror the workflow scripts exactly.
 - run_projection_workflow.py  → projection_outputs()
 - run_future_vpd_workflow.py  → vpd_outputs()
 
-Important: run_historical_workflow.py hardcodes PERIOD_LABEL = "2010_2025" in
-output filenames regardless of --start-year / --end-year CLI arguments (those
-args only control validation, not naming). Pass period=(2010, 2025) to match
-the script's default period; any other period will yield existence=FAIL from
-the ValidationEngine, surfacing the script's naming limitation.
+run_historical_workflow.py now uses dynamic period labels derived from --start-year
+and --end-year, so output filenames reflect the actual requested period.  The
+legacy_path fallback (_HIST_LEGACY_PERIOD = 2010_2025) handles files produced by
+older versions of the script that had a hardcoded period label; the orchestrator
+renames them automatically if the primary path is absent and the legacy path exists.
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ class ExpectedOutput:
                                               # coverage measured vs land pixels, not bbox
 
 
-_HIST_HARDCODED_PERIOD = (2010, 2025)   # run_historical_workflow.py PERIOD_LABEL
+_HIST_LEGACY_PERIOD = (2010, 2025)  # files produced before dynamic period labelling
 
 
 def historical_outputs(
@@ -81,31 +81,30 @@ def historical_outputs(
     """
     Expected clipped outputs from run_historical_workflow.py.
 
-    run_historical_workflow.py hardcodes PERIOD_LABEL = '2010_2025' in output
-    filenames regardless of CLI arguments. When period == (2010, 2025) the paths
-    match exactly. For any other period the primary path uses the correct label
-    and legacy_path points to the '2010_2025' variant — the orchestrator will
-    rename it automatically if the primary is absent and the legacy exists.
+    run_historical_workflow.py uses dynamic period labels, so output filenames
+    reflect the actual requested period.  legacy_path points to the '2010_2025'
+    variant for backwards compatibility with files produced by older script versions;
+    the orchestrator renames them automatically when the primary path is absent.
     """
     period_label = f"{period[0]}_{period[1]}"
-    hardcoded    = f"{_HIST_HARDCODED_PERIOD[0]}_{_HIST_HARDCODED_PERIOD[1]}"
+    legacy_label = f"{_HIST_LEGACY_PERIOD[0]}_{_HIST_LEGACY_PERIOD[1]}"
     outputs: list[ExpectedOutput] = []
     for country in countries:
         long = SHORT_TO_LONG[country]
         # Per-country reference grid: the clipped pr output shares the same
         # lat/lon as all other clipped outputs for that country.
         # Falls back to None when the pr file hasn't been produced yet.
-        pr_ref = _MERGED_DIR / f"{long}_pr_{hardcoded}_025deg_clipped.nc"
+        pr_ref = _MERGED_DIR / f"{long}_pr_{period_label}_025deg_clipped.nc"
         ref = pr_ref if pr_ref.exists() else None
         for var in variables:
             script_var = _HIST_SCRIPT_VAR[var]
             final_var  = _HIST_FINAL_VAR[var]
             path = _MERGED_DIR / f"{long}_{script_var}_{period_label}_025deg_clipped.nc"
-            # Fallback: the script always writes the hardcoded-period filename.
+            # Legacy fallback: files produced before dynamic period labelling used 2010_2025.
             # Only set legacy_path when it would differ from the primary path.
             legacy: Optional[Path] = None
-            if period != _HIST_HARDCODED_PERIOD:
-                legacy = _MERGED_DIR / f"{long}_{script_var}_{hardcoded}_025deg_clipped.nc"
+            if period != _HIST_LEGACY_PERIOD:
+                legacy = _MERGED_DIR / f"{long}_{script_var}_{legacy_label}_025deg_clipped.nc"
             outputs.append(ExpectedOutput(
                 path=path,
                 variable=final_var,

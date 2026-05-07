@@ -334,13 +334,13 @@ def compute_vpd_dataset(
     # Tetens saturation vapor pressure over water, with VPD in hPa.
     if progress is not None:
         progress("Computing Tetens VPD...")
-    saturation_vapor_pressure = 6.112 * np.exp((17.67 * tas_data) / (tas_data + 243.5))
+    saturation_vapor_pressure = 6.1078 * np.exp((17.27 * tas_data) / (tas_data + 237.3))
     vpd = (saturation_vapor_pressure * (1.0 - (rh_data / 100.0))).astype(np.float32)
     vpd.name = "vpd"
     vpd.attrs = {
         "long_name": "Vapour Pressure Deficit",
         "units": "hPa",
-        "formula": "6.112 * exp((17.67 * tas) / (tas + 243.5)) * (1 - rh / 100)",
+        "formula": "6.1078 * exp((17.27 * tas) / (tas + 237.3)) * (1 - rh / 100)",
         "tas_units": str(tas_data.attrs.get("units", "")),
         "rh_units": str(rh_data.attrs.get("units", "")),
         "storage_dtype": "float32",

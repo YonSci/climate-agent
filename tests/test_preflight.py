@@ -281,9 +281,7 @@ class TestRunPreflightEscalation:
 
 class TestCheckSourceDirsStatusFormat:
     def test_existing_dir_status_is_ok(self, tmp_path):
-        with patch("agent.preflight.ROOT", tmp_path):
-            chirps = tmp_path / "data" / "ethiopia_chirips"
-            chirps.mkdir(parents=True)
+        with patch("agent.connectors.chirps.is_source_available", return_value=True):
             result = check_source_dirs({
                 "countries": ["eth"], "variables": ["pr"],
                 "scenario": "historical", "period": [2010, 2025],
@@ -291,7 +289,8 @@ class TestCheckSourceDirsStatusFormat:
         assert result.get("eth/pr/chirps") == "OK"
 
     def test_missing_dir_status_starts_with_missing(self, tmp_path):
-        with patch("agent.preflight.ROOT", tmp_path):
+        with patch("agent.connectors.chirps.is_source_available", return_value=False), \
+             patch("agent.connectors.chirps.source_dir", return_value=tmp_path / "chirps"):
             result = check_source_dirs({
                 "countries": ["eth"], "variables": ["pr"],
                 "scenario": "historical", "period": [2010, 2025],
