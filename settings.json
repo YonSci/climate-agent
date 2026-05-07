@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python scripts/*.py*)",
+      "Bash(python agent/*.py*)",
+      "Bash(pip install*)",
+      "Bash(python -m pytest tests/*)",
+      "Read(data/raw/**)",
+      "Read(boundaries/**)",
+      "Read(scripts/**)",
+      "Write(data/intermediate/**)",
+      "Write(data/final/**)",
+      "Write(data/diagnostics/**)",
+      "Write(runs/**)",
+      "Write(agent/**)",
+      "Write(connectors/**)",
+      "Write(validation/**)"
+    ],
+    "deny": [
+      "Write(scripts/**)",
+      "Write(boundaries/**)",
+      "Bash(rm -rf *)",
+      "Bash(* data/raw/*)"
+    ]
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ClimateAgentRunManifest",
+  "description": "Schema for a single agent run manifest. One file per run in runs/manifests/.",
+  "type": "object",
+  "required": ["run_id", "timestamp", "request", "environment", "stages", "summary"],
+  "properties": {
+
+    "run_id": {
+      "type": "string",
+      "pattern": "^run_\\d{8}_\\d{6}$",
+      "description": "Unique run identifier: run_YYYYMMDD_HHMMSS"
+    },
+
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp when the run started"
+    },
+
+    "request": {
+      "type": "object",
+      "required": ["countries", "variables", "period", "scenario"],
+      "properties": {
+        "countries": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["eth", "ken", "som"] },
+          "minItems": 1
+        },
+        "variables": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["tas", "rh", "vpd", "pr"] },
+          "minItems": 1
+        },
+        "period": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[year_start, year_end] inclusive"
+        },
+        "scenario": {
+          "type": "string",
+          "enum": ["historical", "ssp245", "ssp585"]
+        },
+        "quality_level": {
+          "type": "string",
+          "enum": ["strict", "fast"],
+          "default": "strict"
+        },
+        "diagnostics": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+
+    "environment": {
+      "type": "object",
+      "required": ["python_version"],
+      "properties": {
+        "python_version":  { "type": "string" },
+        "xarray_version":  { "type": "string" },
+        "numpy_version":   { "type": "string" },
+        "script_commit":   { "type": "string", "description": "Git commit hash of scripts/" },
+        "agent_config_hash": { "type": "string", "description": "SHA-256 of agent_config.yaml" },
+        "platform":        { "type": "string" }
+      }
+    },
+
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stage", "country", "variable", "command", "status"],
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "download", "merge", "regrid", "time_clip",
+              "spatial_clip", "hourly_to_daily", "vpd_compute",
+              "validate", "diagnostics"
+            ]
+          },
+          "country":    { "type": "string" },
+          "variable":   { "type": "string" },
+          "scenario":   { "type": "string" },
+          "command":    { "type": "string", "description": "Exact subprocess command string" },
+          "started_at": { "type": "string", "format": "date-time" },
+          "finished_at":{ "type": "string", "format": "date-time" },
+          "duration_seconds": { "type": "number" },
+          "exit_code":  { "type": "integer" },
+          "attempt":    { "type": "integer", "minimum": 1 },
+          "status": {
+            "type": "string",
+            "enum": ["SUCCESS", "FAILED", "SKIPPED", "RETRYING", "WARNING"]
+          },
+          "input_files": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "output_file": { "type": "string" },
+          "input_hashes": {
+            "type": "object",
+            "description": "Map of input filepath → SHA-256 hash"
+          },
+          "output_hash": { "type": "string" },
+          "output_size_bytes": { "type": "integer" },
+          "validation": {
+            "type": "object",
+            "properties": {
+              "existence":       { "type": "string", "enum": ["OK", "FAIL", "SKIP"] },
+              "time_coverage":   { "type": "string", "enum": ["OK", "FAIL", "SKIP", "WARN"] },
+              "daily_axis":      { "type": "string", "enum": ["OK", "FAIL", "SKIP"] },
+              "variable_present":{ "type": "string", "enum": ["OK", "FAIL", "SKIP"] },
+              "units":           { "type": "string", "enum": ["OK", "FAIL", "SKIP", "WARN"] },
+              "grid_match":      { "type": "string", "enum": ["OK", "FAIL", "SKIP"] },
+              "spatial_bounds":  { "type": "string", "enum": ["OK", "FAIL", "SKIP", "WARN"] },
+              "non_nan_coverage":{ "type": "string", "enum": ["OK", "FAIL", "SKIP", "WARN"] },
+              "anomaly":         { "type": "string", "enum": ["OK", "FAIL", "SKIP", "WARN"] },
+              "distribution":    { "type": "string", "enum": ["OK", "FAIL", "SKIP", "WARN"] },
+              "notes":           { "type": "string" }
+            }
+          },
+          "stdout_tail": { "type": "string" },
+          "stderr_tail":  { "type": "string" },
+          "error_message":{ "type": "string" },
+          "fallback_used":{ "type": "boolean" },
+          "fallback_path":{ "type": "string" }
+        }
+      }
+    },
+
+    "summary": {
+      "type": "object",
+      "required": ["total_slices", "succeeded", "failed", "duration_seconds"],
+      "properties": {
+        "total_slices":    { "type": "integer" },
+        "succeeded":       { "type": "integer" },
+        "failed":          { "type": "integer" },
+        "warnings":        { "type": "integer" },
+        "skipped":         { "type": "integer" },
+        "duration_seconds":{ "type": "number" },
+        "failed_slices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "country":  { "type": "string" },
+              "variable": { "type": "string" },
+              "scenario": { "type": "string" },
+              "stage":    { "type": "string" },
+              "reason":   { "type": "string" }
+            }
+          }
+        },
+        "output_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "All final output files produced"
+        },
+        "diagnostic_files": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

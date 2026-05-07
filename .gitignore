@@ -1,0 +1,43 @@
+# ── Large data files ─────────────────────────────────────────
+data/
+runs/
+
+# ── Windows directory junction (local alias for scripts/) ────
+/codes
+
+# ── Python build artifacts ───────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ──────────────────────────────────────
+climate-agent-env/
+venv/
+.venv/
+env/
+
+# ── Test cache ────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── IDE / OS ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
+
+# ── Credentials / secrets ─────────────────────────────────────
+.cdsapirc
+*.env
+.env.*
+
+# ── Temp files ────────────────────────────────────────────────
+*.tmp
+*.bak

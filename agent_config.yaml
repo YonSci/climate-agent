@@ -1,0 +1,115 @@
+# ============================================================
+# Climate Data Processing Agent — Runtime Configuration
+# Edit this file to adapt paths and policies to your machine.
+# All paths are relative to the project root unless absolute.
+# ============================================================
+
+# ── Base directories ─────────────────────────────────────────
+paths:
+  root: "."                            # project root
+  scripts: "scripts"                   # deterministic script tools (read-only)
+  boundaries: "boundaries"             # country shapefiles
+  data_raw: "data/raw"                 # downloaded source files
+  data_intermediate: "data/intermediate"
+  data_final: "data/final"
+  data_diagnostics: "data/diagnostics"
+  runs_manifests: "runs/manifests"
+  runs_logs: "runs/logs"
+
+# ── Reference grid ───────────────────────────────────────────
+# CHIRPS 0.05-degree grid used as regridding reference for AgERA5 variables.
+# VPD and projection outputs are clipped to 0.25-degree final grid.
+reference_grid:
+  chirps_005deg: "data/raw/chirps/chirps_v2.0_2000.days_p05.nc"
+  target_resolution_deg: 0.25
+
+# ── Supported domain values ──────────────────────────────────
+countries:
+  - code: eth
+    name: Ethiopia
+    shapefile: "boundaries/ethiopia_adm0.geojson"
+  - code: ken
+    name: Kenya
+    shapefile: "boundaries/kenya_adm0.geojson"
+  - code: som
+    name: Somalia
+    shapefile: "boundaries/somalia_adm0.geojson"
+
+scenarios:
+  - historical
+  - ssp245
+  - ssp585
+
+variables:
+  - name: tas
+    long_name: "Near-surface air temperature"
+    canonical_unit: K
+    source: agera5
+    valid_range: [200, 340]
+  - name: rh
+    long_name: "Near-surface relative humidity"
+    canonical_unit: "%"
+    source: agera5
+    valid_range: [0, 100]
+  - name: vpd
+    long_name: "Vapour pressure deficit"
+    canonical_unit: hPa
+    source: derived
+    valid_range: [0, 80]
+  - name: pr
+    long_name: "Precipitation"
+    canonical_unit: mm/day
+    source: chirps
+    valid_range: [0, 500]
+
+# ── Validation policy ─────────────────────────────────────────
+validation:
+  mode: strict                         # strict | fast
+  min_land_pixel_coverage: 0.80        # 80% non-NaN required per time step
+  max_missing_year_fraction: 0.05      # flag if > 5% of expected years missing
+  grid_tolerance: 1.0e-4               # lat/lon match tolerance (degrees)
+  spatial_bounds_buffer_deg: 0.5       # allowed overshoot vs shapefile bbox
+  # Checks disabled in fast mode:
+  fast_mode_skip:
+    - grid_match
+    - spatial_bounds
+
+# ── Retry policy ──────────────────────────────────────────────
+retry:
+  max_attempts: 3
+  backoff_seconds: [30, 60, 120]       # exponential — one value per attempt gap
+  retryable_exit_codes: [1]            # exit code 2+ → hard failure, no retry
+
+# ── Compression policy ────────────────────────────────────────
+compression:
+  intermediate:
+    complevel: 1                       # low compression for speed
+    zlib: true
+  final:
+    complevel: 4                       # moderate compression for storage
+    zlib: true
+  fast_mode_override:
+    complevel: 1                       # override final compression in fast mode
+
+# ── Parallelism ───────────────────────────────────────────────
+parallel:
+  max_workers: 4                       # concurrent country-scenario-variable slices
+  isolate_contexts: true               # each slice runs in isolated subprocess
+
+# ── Cleanup policy ────────────────────────────────────────────
+cleanup:
+  delete_intermediates_on_success: false   # set true to save disk space
+  keep_raw_downloads: true                 # never delete raw source files
+
+# ── CDS API settings (for AgERA5 / CHIRPS downloads) ─────────
+cds:
+  url: "https://cds.climate.copernicus.eu/api/v2"
+  # key is read from ~/.cdsapirc — never store here
+  request_timeout_seconds: 3600
+  poll_interval_seconds: 30
+
+# ── Logging ───────────────────────────────────────────────────
+logging:
+  level: INFO                          # DEBUG | INFO | WARNING | ERROR
+  stdout_tail_lines: 20                # lines of subprocess stdout captured to manifest
+  stderr_tail_lines: 20
