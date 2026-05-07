@@ -66,7 +66,7 @@ from agent.task_router import TaskRouter
 from agent.planner import Planner
 from agent.state_store import StateStore
 from agent.orchestrator import Orchestrator
-from agent.artifact_manager import LOGS_DIR, run_report
+from agent.artifact_manager import LOGS_DIR, run_report, cleanup_intermediates
 
 
 def _setup_logging(run_id: str, level: str = "INFO") -> None:
@@ -143,6 +143,86 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _run_list_runs_mode() -> int | None:
+    """Handle --list-runs [--limit N] [--failed] early exit.
+
+    Scans runs/manifests/ and prints a summary table of past runs sorted by
+    most-recent first. Returns exit code when handled, None to continue.
+    """
+    if "--list-runs" not in sys.argv:
+        return None
+
+    args = sys.argv[1:]
+    limit = 20
+    failed_only = "--failed" in args
+    try:
+        li = args.index("--limit")
+        limit = int(args[li + 1])
+    except (ValueError, IndexError):
+        pass
+
+    from agent.artifact_manager import MANIFESTS_DIR
+
+    manifests_dir = MANIFESTS_DIR
+    try:
+        mi = args.index("--manifests-dir")
+        manifests_dir = Path(args[mi + 1])
+    except (ValueError, IndexError):
+        pass
+
+    manifests = sorted(manifests_dir.glob("run_*.json"), reverse=True) if manifests_dir.exists() else []
+    if not manifests:
+        print(f"No run manifests found in {manifests_dir}.")
+        return 0
+
+    rows = []
+    for mpath in manifests:
+        try:
+            with open(mpath) as f:
+                m = json.load(f)
+        except Exception:
+            continue
+
+        summary = m.get("summary", {})
+        req     = m.get("request", {})
+        ok      = summary.get("failed", 1) == 0
+        if failed_only and ok:
+            continue
+
+        rows.append({
+            "run_id":    m.get("run_id", mpath.stem),
+            "timestamp": m.get("timestamp", "")[:19].replace("T", " "),
+            "scenario":  req.get("scenario", "?"),
+            "countries": ",".join(req.get("countries", [])),
+            "variables": ",".join(req.get("variables", [])),
+            "period":    "{}-{}".format(*req["period"]) if req.get("period") else "?",
+            "ok":        summary.get("succeeded", 0),
+            "fail":      summary.get("failed", 0),
+            "warn":      summary.get("warnings", 0),
+            "dur":       f"{summary.get('duration_seconds', 0):.0f}s",
+            "status":    "OK" if ok else "FAIL",
+        })
+        if len(rows) >= limit:
+            break
+
+    if not rows:
+        print("No matching runs found.")
+        return 0
+
+    # Print table
+    hdr = f"{'RUN ID':<26}  {'TIMESTAMP':<19}  {'SCENARIO':<12}  {'COUNTRIES':<15}  {'VARIABLES':<16}  {'PERIOD':<10}  {'OK':>4}  {'FAIL':>4}  {'WARN':>4}  {'DUR':>6}  STATUS"
+    print(hdr)
+    print("-" * len(hdr))
+    for r in rows:
+        print(
+            f"{r['run_id']:<26}  {r['timestamp']:<19}  {r['scenario']:<12}  "
+            f"{r['countries']:<15}  {r['variables']:<16}  {r['period']:<10}  "
+            f"{r['ok']:>4}  {r['fail']:>4}  {r['warn']:>4}  {r['dur']:>6}  {r['status']}"
+        )
+    print(f"\n{len(rows)} run(s) shown. Use --limit N or --failed to filter.")
+    return 0
+
+
 def _run_validate_mode() -> int | None:
     """Handle --validate-run [RUN_ID] [--checks] [--no-color] early exit.
 
@@ -209,6 +289,10 @@ def _run_country_plan(
 
 
 def main() -> int:
+    code = _run_list_runs_mode()
+    if code is not None:
+        return code
+
     code = _run_validate_mode()
     if code is not None:
         return code
@@ -364,10 +448,24 @@ def main() -> int:
                 all_qc_stats.update(stage_qc)
 
     # ── Close run ─────────────────────────────────────────────────────────────
+    dl_report = orch.download_report if orch.download_report else None
+    if dl_report:
+        ok_dl  = sum(1 for d in dl_report if d.get("ok"))
+        tot_mb = sum(d.get("size_bytes", 0) for d in dl_report) / 1024 / 1024
+        logger.info(
+            f"Downloads: {ok_dl}/{len(dl_report)} succeeded, "
+            f"{tot_mb:.1f} MB total"
+        )
+        for d in dl_report:
+            status = "OK" if d["ok"] else f"FAILED ({d.get('error', '')})"
+            mb = d.get("size_bytes", 0) / 1024 / 1024
+            logger.info(f"  {d['label']:<30} {mb:>7.1f} MB  {status}")
+
     store.close_run(
         output_files=all_outputs,
         diagnostic_files=all_diag_files,
         qc_stats=all_qc_stats or None,
+        download_report=dl_report,
     )
 
     report_path = run_report(run_id)
@@ -376,6 +474,16 @@ def main() -> int:
         json.dump(summary, f, indent=2, default=str)
 
     logger.info(f"Run report written to: {report_path}")
+
+    # ── Post-run cleanup ──────────────────────────────────────────────────────
+    if all_ok:
+        deleted = cleanup_intermediates(args.countries, args.variables)
+        if deleted:
+            logger.info(
+                f"Cleaned up {len(deleted)} intermediate file(s) "
+                "(cleanup.delete_intermediates_on_success=true)"
+            )
+
     logger.info(
         f"=== Run {'SUCCEEDED' if all_ok else 'FAILED'}: {run_id} "
         f"({summary.get('duration_seconds', 0):.0f}s) ==="

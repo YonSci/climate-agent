@@ -101,6 +101,8 @@ class Orchestrator:
     def __init__(self, store: StateStore, fast_mode: bool = False):
         self.store = store
         self.fast_mode = fast_mode
+        # Accumulated download report: list of {label, path, size_bytes, ok}
+        self.download_report: list[dict] = []
 
     def run_stage(self, *,
                   stage: str,
@@ -245,22 +247,30 @@ class Orchestrator:
         if not pending:
             return
 
-        def _run_one(item: tuple[list[str], str, Path]) -> tuple[str, bool, str]:
+        def _run_one(item: tuple[list[str], str, Path]) -> tuple[str, bool, Path, str]:
             cmd, label, raw = item
             logger.info(f"Downloading {label}")
             res = subprocess.run(cmd, capture_output=True, text=True,
                                  cwd=str(_PROJECT_ROOT))
             ok = res.returncode == 0
-            return label, ok, _tail(res.stderr, 5) if not ok else str(raw)
+            return label, ok, raw, _tail(res.stderr, 5) if not ok else ""
 
         max_workers = min(len(pending), 4)
         logger.info(f"Starting {len(pending)} download(s) with {max_workers} worker(s)")
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             futures = {pool.submit(_run_one, item): item for item in pending}
             for fut in as_completed(futures):
-                label, ok, detail = fut.result()
+                label, ok, raw, detail = fut.result()
+                size = raw.stat().st_size if ok and raw.exists() else 0
+                self.download_report.append({
+                    "label":      label,
+                    "path":       str(raw),
+                    "size_bytes": size,
+                    "ok":         ok,
+                    "error":      detail,
+                })
                 if ok:
-                    logger.info(f"  downloaded {label} -> {detail}")
+                    logger.info(f"  downloaded {label} ({size / 1024 / 1024:.1f} MB)")
                 else:
                     logger.warning(f"  download FAILED [{label}]: {detail}")
 

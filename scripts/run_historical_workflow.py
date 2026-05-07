@@ -75,6 +75,7 @@ MERGE_SCRIPT = {
     ("somalia", "rh"): "merge_netcdf_somalia_relative_humidity_mean.py",
     ("somalia", "temp"): "merge_netcdf_somalia_temperature.py",
     ("somalia", "vpd"): "merge_netcdf_somalia_vapour_pressure_deficit.py",
+    ("somalia", "vpd"): "merge_netcdf_somalia_vapour_pressure_deficit.py",
 }
 MERGE_INPUT_DIR = {
     "rh": "relative_humidity_mean",

@@ -208,6 +208,7 @@ class StateStore:
         output_files: list[str],
         diagnostic_files: list[str],
         qc_stats: dict | None = None,
+        download_report: list[dict] | None = None,
     ) -> None:
         with self._lock:
             stages = self._manifest["stages"]
@@ -238,6 +239,18 @@ class StateStore:
             }
             if qc_stats:
                 summary["qc_stats"] = qc_stats
+
+            if download_report:
+                total_dl  = len(download_report)
+                ok_dl     = sum(1 for d in download_report if d.get("ok"))
+                total_mb  = sum(d.get("size_bytes", 0) for d in download_report) / 1024 / 1024
+                summary["downloads"] = {
+                    "total":    total_dl,
+                    "succeeded": ok_dl,
+                    "failed":   total_dl - ok_dl,
+                    "total_mb": round(total_mb, 2),
+                    "files":    download_report,
+                }
 
             self._manifest["summary"] = summary
             self._flush(validate=True)

@@ -138,3 +138,29 @@ def ensure_dirs_for(path: Path) -> Path:
     """Create parent directories for a given output path."""
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def cleanup_intermediates(countries: list[str], variables: list[str]) -> list[str]:
+    """
+    Delete intermediate NetCDF files for the given country/variable slices,
+    honouring the cleanup.delete_intermediates_on_success flag in agent_config.yaml.
+
+    Returns list of deleted file paths. No-ops (and returns []) when the flag
+    is false or the directories don't exist.
+    """
+    if not _cfg.get("cleanup", {}).get("delete_intermediates_on_success", False):
+        return []
+
+    deleted: list[str] = []
+    for country in countries:
+        for variable in variables:
+            inter_dir = INTER_DIR / country / variable
+            if not inter_dir.exists():
+                continue
+            for nc in inter_dir.glob("*.nc"):
+                try:
+                    nc.unlink()
+                    deleted.append(str(nc))
+                except OSError:
+                    pass
+    return deleted

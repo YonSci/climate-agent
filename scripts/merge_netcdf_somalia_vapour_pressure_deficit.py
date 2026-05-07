@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge daily NetCDF files into one time-series NetCDF file."""
+"""Merge Somalia daily vapour pressure deficit NetCDF files into one time-series NetCDF file."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output",
-        default="data/somalia_vapour_pressure_deficit/somalia_vpd_merged.nc",
+        default="data/somalia_vapour_pressure_deficit/somalia_vapour_pressure_deficit_merged.nc",
         help="Output merged NetCDF file path.",
     )
     return parser.parse_args()
