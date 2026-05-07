@@ -155,6 +155,10 @@ def parse_args() -> argparse.Namespace:
         "--resume-latest", action="store_true",
         help="Auto-resume the most recent run that recorded at least one failure",
     )
+    parser.add_argument(
+        "--force", action="store_true",
+        help="Re-run stages even if all expected outputs already exist on disk",
+    )
     return parser.parse_args()
 
 
@@ -533,7 +537,7 @@ def main() -> int:
             return 1
     else:
         store = StateStore(run_id, request)
-    orch  = Orchestrator(store, fast_mode=(args.mode == "fast"))
+    orch  = Orchestrator(store, fast_mode=(args.mode == "fast"), force=args.force)
 
     all_ok = True
     all_outputs: list[str] = []

@@ -180,6 +180,9 @@ class TaskRouter:
     # ── Private builders ──────────────────────────────────────────────────────
 
     def _historical(self, countries, variables, period, fast_mode, diag, workers) -> WorkflowPlan:
+        from pathlib import Path as _Path
+        from agent.artifact_manager import ROOT as _ROOT
+
         long_countries = [SHORT_TO_LONG[c] for c in countries]
         script_vars    = [HIST_VAR_ALIAS[v] for v in variables]
 
@@ -194,6 +197,17 @@ class TaskRouter:
             args.append("--fast-mode")
         if diag:
             args.append("--run-diagnostics")
+
+        # If merged intermediate files already exist for all non-pr variables,
+        # skip the expensive per-day merge step (5000+ files per variable).
+        _merged_dir = _ROOT / "data" / "merged_files"
+        _period_label = f"{period[0]}_{period[1]}"
+        _needs_merge = [v for v in variables if v != "pr"]
+        if _needs_merge and all(
+            (_merged_dir / f"{SHORT_TO_LONG[c]}_{HIST_VAR_ALIAS[v]}_{_period_label}.nc").exists()
+            for c in countries for v in _needs_merge
+        ):
+            args.append("--skip-merge")
 
         return WorkflowPlan(
             run_type="historical",

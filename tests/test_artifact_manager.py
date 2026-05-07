@@ -179,8 +179,10 @@ class TestReferenceGridPath:
     def test_path_is_under_project_root(self):
         assert str(ROOT) in str(reference_grid_path())
 
-    def test_path_contains_chirps(self):
-        assert "chirps" in str(reference_grid_path()).lower()
+    def test_path_is_nc_and_exists(self):
+        p = reference_grid_path()
+        assert p.suffix == ".nc"
+        assert p.exists(), f"Reference grid not found: {p}"
 
     def test_path_is_nc_file(self):
         assert reference_grid_path().suffix == ".nc"

@@ -9,9 +9,15 @@ paths:
   root: "."                            # project root
   scripts: "scripts"                   # deterministic script tools (read-only)
   boundaries: "boundaries"             # country shapefiles
-  data_raw: "data/raw"                 # downloaded source files
-  data_intermediate: "data/intermediate"
-  data_final: "data/final"
+  # Raw source files live in legacy per-country directories:
+  #   data/{country}_temperature/netcdf/       (AgERA5 tas)
+  #   data/{country}_relative_humidity_mean/netcdf/  (AgERA5 rh)
+  #   data/{country}_chirips/                  (CHIRPS pr)
+  #   data/projection_data/isimip-download-{country}/  (ISIMIP)
+  # New structured downloads (agera5_download.py) write to data_raw below.
+  data_raw: "data/raw"
+  data_intermediate: "data/merged_files"       # merged + regridded working files
+  data_final: "data/merged_files"              # final clipped outputs (same dir)
   data_diagnostics: "data/diagnostics"
   runs_manifests: "runs/manifests"
   runs_logs: "runs/logs"
@@ -20,7 +26,7 @@ paths:
 # CHIRPS 0.05-degree grid used as regridding reference for AgERA5 variables.
 # VPD and projection outputs are clipped to 0.25-degree final grid.
 reference_grid:
-  chirps_005deg: "data/raw/chirps/chirps_v2.0_2000.days_p05.nc"
+  chirps_005deg: "data/merged_files/ethiopia_pr_2010_2025.nc"
   target_resolution_deg: 0.25
 
 # ── Supported domain values ──────────────────────────────────

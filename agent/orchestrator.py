@@ -127,9 +127,10 @@ def _classify_subprocess_error(script_name: str, stderr: str, attempts: int) -> 
 class Orchestrator:
     """Runs pipeline stages as subprocesses with retry and logging."""
 
-    def __init__(self, store: StateStore, fast_mode: bool = False):
+    def __init__(self, store: StateStore, fast_mode: bool = False, force: bool = False):
         self.store = store
         self.fast_mode = fast_mode
+        self.force = force
         # Accumulated download report: list of {label, path, size_bytes, ok}
         self.download_report: list[dict] = []
 
@@ -163,7 +164,7 @@ class Orchestrator:
             self.store.record_stage(
                 stage=stage, country=country, variable=variable,
                 scenario=scenario, command=" ".join(cmd),
-                status="SKIPPED", input_files=input_files,
+                status="SKIPPED", exit_code=0, input_files=input_files,
                 output_file=output_file
             )
             return True
@@ -343,6 +344,23 @@ class Orchestrator:
 
         if self.store.is_complete(stage, country_key, variable_key, scenario):
             logger.info(f"SKIP tool {stage} (already complete)")
+            return True
+
+        # ── Skip stage when all expected outputs already exist on disk ────────────
+        if not self.force and expected_outputs and all(
+            exp.path.exists()
+            or (isinstance(getattr(exp, "legacy_path", None), Path) and exp.legacy_path.exists())
+            for exp in expected_outputs
+        ):
+            logger.info(
+                f"SKIP tool {stage}: {len(expected_outputs)} expected output(s) already "
+                "exist on disk. Use --force to re-run."
+            )
+            self.store.record_stage(
+                stage=stage, country=country_key, variable=variable_key,
+                scenario=scenario, command="(skipped — outputs exist)", status="SKIPPED",
+                exit_code=0,
+            )
             return True
 
         # ── Pre-stage: download missing source files for historical runs ─────────
