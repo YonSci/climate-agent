@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from agent.artifact_manager import ROOT, SCRIPTS_DIR, BOUNDARIES_DIR
+from agent.artifact_manager import ROOT, SCRIPTS_DIR, BOUNDARIES_DIR, reference_grid_path
 from agent.policy import (
     SHORT_TO_LONG, SCENARIO_TO_SCRIPT,
     HIST_SOURCE_DIRS, ISIMIP_SOURCE_DIR, ISIMIP_SOURCE_VAR,
@@ -57,6 +57,27 @@ def check_dependencies() -> dict[str, str]:
         except Exception as exc:
             results[pkg] = f"MISSING ({exc})"
     return results
+
+
+def check_cds_credentials() -> str:
+    """Return 'OK' if ~/.cdsapirc exists and is non-empty, else an error string."""
+    cdsapirc = Path.home() / ".cdsapirc"
+    if not cdsapirc.exists():
+        return f"MISSING: {cdsapirc} — create it with your CDS API key before downloading AgERA5/CHIRPS data"
+    if cdsapirc.stat().st_size == 0:
+        return f"EMPTY: {cdsapirc} — file exists but contains no credentials"
+    return "OK"
+
+
+def check_reference_grid() -> str:
+    """Return 'OK' if the CHIRPS 0.05° reference grid used for regridding exists."""
+    try:
+        p = reference_grid_path()
+        if p.exists():
+            return "OK"
+        return f"MISSING: {p} — needed for regridding AgERA5 variables to CHIRPS reference grid"
+    except Exception as exc:
+        return f"ERROR: {exc}"
 
 
 def check_boundaries(countries: list[str]) -> dict[str, str]:
@@ -129,8 +150,10 @@ def run_preflight(request: dict) -> PreflightReport:
     Checks performed:
     1. Python package dependencies
     2. Workflow scripts present
-    3. Country boundary files
-    4. Source data directories
+    3. CDS API credentials (~/.cdsapirc)
+    4. CHIRPS reference grid for regridding
+    5. Country boundary files
+    6. Source data directories
     """
     report = PreflightReport()
 
@@ -148,13 +171,23 @@ def run_preflight(request: dict) -> PreflightReport:
         if status != "OK":
             report.errors.append(f"Workflow script {status}")
 
-    # 3 — boundaries
+    # 3 — CDS API credentials (warning only: not needed for projection-only runs)
+    cds_status = check_cds_credentials()
+    if cds_status != "OK":
+        report.warnings.append(f"CDS API credentials: {cds_status}")
+
+    # 4 — reference grid (error: every historical regrid stage requires it)
+    grid_status = check_reference_grid()
+    if grid_status != "OK":
+        report.errors.append(f"Reference grid: {grid_status}")
+
+    # 5 — boundaries
     boundaries = check_boundaries(request["countries"])
     for code, status in boundaries.items():
         if status != "OK":
             report.warnings.append(f"Boundary file for '{code}': {status}")
 
-    # 4 — source data dirs
+    # 6 — source data dirs
     sources = check_source_dirs(request)
     for key, status in sources.items():
         if status != "OK":

@@ -13,6 +13,8 @@ from agent.preflight import (
     check_boundaries,
     check_scripts,
     check_source_dirs,
+    check_cds_credentials,
+    check_reference_grid,
     run_preflight,
     PreflightReport,
 )
@@ -219,6 +221,8 @@ class TestRunPreflightEscalation:
                    return_value={"run_historical_workflow.py": "OK",
                                  "run_projection_workflow.py": "OK",
                                  "run_future_vpd_workflow.py": "OK"}), \
+             patch("agent.preflight.check_cds_credentials", return_value="OK"), \
+             patch("agent.preflight.check_reference_grid", return_value="OK"), \
              patch("agent.preflight.check_boundaries",
                    return_value={"eth": "MISSING: /path/eth.shp"}), \
              patch("agent.preflight.check_source_dirs",
@@ -248,6 +252,8 @@ class TestRunPreflightEscalation:
                    return_value={"run_historical_workflow.py": "OK",
                                  "run_projection_workflow.py": "OK",
                                  "run_future_vpd_workflow.py": "OK"}), \
+             patch("agent.preflight.check_cds_credentials", return_value="OK"), \
+             patch("agent.preflight.check_reference_grid", return_value="OK"), \
              patch("agent.preflight.check_boundaries", return_value={"eth": "OK"}), \
              patch("agent.preflight.check_source_dirs",
                    return_value={"eth/pr/chirps": "OK"}):

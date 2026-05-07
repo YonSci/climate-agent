@@ -11,6 +11,7 @@ from __future__ import annotations
 import subprocess
 import logging
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from agent.policy import should_retry, wait_before_retry, SHORT_TO_LONG, HIST_SOURCE_DIRS
@@ -18,6 +19,8 @@ from agent.state_store import StateStore
 from agent.artifact_manager import SCRIPTS_DIR, ROOT, diagnostics_dir
 from agent.validation_engine import ValidationEngine
 from agent.output_resolver import ExpectedOutput
+import connectors.agera5_connector as _agera5_conn
+import connectors.chirps_connector as _chirps_conn
 
 logger = logging.getLogger(__name__)
 
@@ -197,16 +200,17 @@ class Orchestrator:
         year_end: int,
     ) -> None:
         """
-        Download missing AgERA5 / CHIRPS raw files before historical merge stages.
+        Download missing AgERA5 / CHIRPS raw files before historical merge stages,
+        using a thread pool so multiple year slices download concurrently.
 
         Only acts when the merge scripts' expected source directory is absent or empty.
         Downloads to the canonical raw/ location; does not raise on failure — missing
         sources will surface as errors when the workflow script itself runs.
         """
-        import connectors.agera5_connector as _agera5
-        import connectors.chirps_connector as _chirps
-
         data_root = ROOT / "data"
+
+        # Collect all (cmd, label, raw_path) tuples that need downloading
+        pending: list[tuple[list[str], str, Path]] = []
 
         for country in countries:
             long = SHORT_TO_LONG[country]
@@ -222,42 +226,43 @@ class Orchestrator:
 
                 logger.info(
                     f"Source dir absent or empty for {country}/{var} "
-                    f"({src_dir}) — attempting raw download"
+                    f"({src_dir}) — queuing raw download"
                 )
 
                 if var == "pr":
                     for year in range(year_start, year_end + 1):
-                        raw = _chirps.expected_path(year)
-                        if raw.exists():
-                            continue
-                        cmd = _chirps.build_cmd(year)
-                        logger.info(f"Downloading CHIRPS {year}")
-                        res = subprocess.run(cmd, capture_output=True, text=True,
-                                             cwd=str(_PROJECT_ROOT))
-                        if res.returncode != 0:
-                            logger.warning(
-                                f"CHIRPS download failed [{year}]: "
-                                f"{_tail(res.stderr, 5)}"
-                            )
-                        else:
-                            logger.info(f"  -> {raw}")
-
-                elif var in _agera5.SUPPORTED_VARIABLES:
+                        raw = _chirps_conn.expected_path(year)
+                        if not raw.exists():
+                            pending.append((_chirps_conn.build_cmd(year),
+                                            f"CHIRPS/{year}", raw))
+                elif var in _agera5_conn.SUPPORTED_VARIABLES:
                     for year in range(year_start, year_end + 1):
-                        raw = _agera5.expected_path(var, year)
-                        if raw.exists():
-                            continue
-                        cmd = _agera5.build_cmd(var, year)
-                        logger.info(f"Downloading AgERA5 {var}/{year}")
-                        res = subprocess.run(cmd, capture_output=True, text=True,
-                                             cwd=str(_PROJECT_ROOT))
-                        if res.returncode != 0:
-                            logger.warning(
-                                f"AgERA5 download failed [{var}/{year}]: "
-                                f"{_tail(res.stderr, 5)}"
-                            )
-                        else:
-                            logger.info(f"  -> {raw}")
+                        raw = _agera5_conn.expected_path(var, year)
+                        if not raw.exists():
+                            pending.append((_agera5_conn.build_cmd(var, year),
+                                            f"AgERA5/{var}/{year}", raw))
+
+        if not pending:
+            return
+
+        def _run_one(item: tuple[list[str], str, Path]) -> tuple[str, bool, str]:
+            cmd, label, raw = item
+            logger.info(f"Downloading {label}")
+            res = subprocess.run(cmd, capture_output=True, text=True,
+                                 cwd=str(_PROJECT_ROOT))
+            ok = res.returncode == 0
+            return label, ok, _tail(res.stderr, 5) if not ok else str(raw)
+
+        max_workers = min(len(pending), 4)
+        logger.info(f"Starting {len(pending)} download(s) with {max_workers} worker(s)")
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {pool.submit(_run_one, item): item for item in pending}
+            for fut in as_completed(futures):
+                label, ok, detail = fut.result()
+                if ok:
+                    logger.info(f"  downloaded {label} -> {detail}")
+                else:
+                    logger.warning(f"  download FAILED [{label}]: {detail}")
 
     def run_tool(self, *,
                  stage: str,

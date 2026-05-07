@@ -1,16 +1,20 @@
 """
 Shared pytest fixtures for the climate agent test suite.
 
-All file-backed fixtures call pytest.skip() when the real data file is absent
-so the test suite remains runnable in environments without the full dataset.
+Synthetic fixtures (prefix synthetic_*) are always available — they are generated
+from tests/fixtures/ and require no external data download.
+
+Real-data fixtures call pytest.skip() when the file is absent so the suite
+remains runnable on machines that have only partial or no source data.
 """
 
 from __future__ import annotations
 from pathlib import Path
 import pytest
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR     = PROJECT_ROOT / "data"
+PROJECT_ROOT  = Path(__file__).resolve().parents[1]
+DATA_DIR      = PROJECT_ROOT / "data"
+FIXTURES_DIR  = PROJECT_ROOT / "tests" / "fixtures"
 
 
 def _require(path: Path) -> Path:
@@ -18,6 +22,53 @@ def _require(path: Path) -> Path:
     if not path.exists():
         pytest.skip(f"Test data file not found: {path}")
     return path
+
+
+# ── Synthetic fixtures (always available, no download needed) ─────────────────
+
+@pytest.fixture(scope="session")
+def synthetic_tas() -> Path:
+    """Synthetic daily tas (K) NetCDF covering 2010–2011, 5×5 Ethiopia-like grid."""
+    p = FIXTURES_DIR / "tas_eth_historical_2010-2011_0p25deg.nc"
+    if not p.exists():
+        pytest.skip(f"Synthetic fixture missing — run: python tests/fixtures/make_fixtures.py ({p})")
+    return p
+
+
+@pytest.fixture(scope="session")
+def synthetic_rh() -> Path:
+    """Synthetic daily rh (%) NetCDF covering 2010–2011."""
+    p = FIXTURES_DIR / "rh_eth_historical_2010-2011_0p25deg.nc"
+    if not p.exists():
+        pytest.skip(f"Synthetic fixture missing — run: python tests/fixtures/make_fixtures.py ({p})")
+    return p
+
+
+@pytest.fixture(scope="session")
+def synthetic_vpd() -> Path:
+    """Synthetic daily vpd (hPa) NetCDF covering 2010–2011."""
+    p = FIXTURES_DIR / "vpd_eth_historical_2010-2011_0p25deg.nc"
+    if not p.exists():
+        pytest.skip(f"Synthetic fixture missing — run: python tests/fixtures/make_fixtures.py ({p})")
+    return p
+
+
+@pytest.fixture(scope="session")
+def synthetic_pr() -> Path:
+    """Synthetic daily pr (mm/day) NetCDF covering 2010–2011."""
+    p = FIXTURES_DIR / "pr_eth_historical_2010-2011_0p25deg.nc"
+    if not p.exists():
+        pytest.skip(f"Synthetic fixture missing — run: python tests/fixtures/make_fixtures.py ({p})")
+    return p
+
+
+@pytest.fixture(scope="session")
+def synthetic_reference_grid() -> Path:
+    """Minimal reference grid NetCDF (lat/lon only) for regrid checks."""
+    p = FIXTURES_DIR / "reference_grid.nc"
+    if not p.exists():
+        pytest.skip(f"Synthetic fixture missing — run: python tests/fixtures/make_fixtures.py ({p})")
+    return p
 
 
 # ── CHIRPS files ──────────────────────────────────────────────────────────────

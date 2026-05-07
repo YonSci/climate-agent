@@ -23,7 +23,6 @@ from run_projection_workflow import (
 )
 
 
-PERIOD_LABEL = "2010_2025"
 DEFAULT_START_YEAR = 2010
 DEFAULT_END_YEAR = 2025
 DEFAULT_MAX_WORKERS = 1
@@ -178,10 +177,11 @@ def get_compression_levels(args: argparse.Namespace) -> tuple[int, int]:
     return DEFAULT_INTERMEDIATE_COMPRESSION, DEFAULT_FINAL_COMPRESSION
 
 
-def build_paths(country: str, variable: str) -> dict[str, Path]:
-    raw_output = MERGED_DIR / f"{country}_{variable}_{PERIOD_LABEL}.nc"
-    clipped_output = MERGED_DIR / f"{country}_{variable}_{PERIOD_LABEL}_025deg_clipped.nc"
-    target_grid = MERGED_DIR / f"{country}_pr_{PERIOD_LABEL}.nc"
+def build_paths(country: str, variable: str, start_year: int, end_year: int) -> dict[str, Path]:
+    period_label = f"{start_year}_{end_year}"
+    raw_output = MERGED_DIR / f"{country}_{variable}_{period_label}.nc"
+    clipped_output = MERGED_DIR / f"{country}_{variable}_{period_label}_025deg_clipped.nc"
+    target_grid = MERGED_DIR / f"{country}_pr_{period_label}.nc"
     boundary = BOUNDARY_DIR / f"{country}_adm0.geojson"
 
     if variable == "pr":
@@ -189,7 +189,7 @@ def build_paths(country: str, variable: str) -> dict[str, Path]:
         merge_input_dir = None
         merge_script = None
     else:
-        processed_output = MERGED_DIR / f"{country}_{variable}_{PERIOD_LABEL}_025deg.nc"
+        processed_output = MERGED_DIR / f"{country}_{variable}_{period_label}_025deg.nc"
         merge_input_dir = DATA_DIR / f"{country}_{MERGE_INPUT_DIR[variable]}" / "netcdf"
         merge_script = WORKSPACE_ROOT / "codes" / MERGE_SCRIPT[(country, variable)]
 
@@ -227,7 +227,7 @@ def run_diagnostics(output_path: Path, var_name: str, diagnostics_dir: Path, pre
 
 def process_one(country: str, variable: str, args: argparse.Namespace) -> None:
     config = VARIABLE_CONFIG[variable]
-    paths = build_paths(country, variable)
+    paths = build_paths(country, variable, args.start_year, args.end_year)
     intermediate_compression, final_compression = get_compression_levels(args)
 
     print(f"\n=== {country} historical {variable} ===")

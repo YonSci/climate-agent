@@ -215,6 +215,10 @@ def main() -> int:
 
     args = parse_args()
 
+    if args.workers < 1:
+        print(f"ERROR: --workers must be at least 1 (got {args.workers})", file=sys.stderr)
+        return 1
+
     run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
     _setup_logging(run_id, args.log_level)
     logger = logging.getLogger(__name__)

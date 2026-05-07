@@ -76,6 +76,14 @@ def _env_info() -> dict:
         except Exception:
             pass
 
+    config_hash = "unknown"
+    try:
+        from agent.artifact_manager import ROOT
+        cfg_path = ROOT / "agent_config.yaml"
+        config_hash = "sha256:" + hashlib.sha256(cfg_path.read_bytes()).hexdigest()[:16]
+    except Exception:
+        pass
+
     return {
         "python_version": platform.python_version(),
         "xarray_version": _pkg_version("xarray"),
@@ -83,6 +91,7 @@ def _env_info() -> dict:
         "geopandas_version": _pkg_version("geopandas"),
         "platform": platform.platform(),
         "script_commit": commit,
+        "agent_config_hash": config_hash,
     }
 
 

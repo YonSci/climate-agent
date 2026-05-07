@@ -59,12 +59,13 @@
       "type": "object",
       "required": ["python_version"],
       "properties": {
-        "python_version":  { "type": "string" },
-        "xarray_version":  { "type": "string" },
-        "numpy_version":   { "type": "string" },
-        "script_commit":   { "type": "string", "description": "Git commit hash of scripts/" },
-        "agent_config_hash": { "type": "string", "description": "SHA-256 of agent_config.yaml" },
-        "platform":        { "type": "string" }
+        "python_version":     { "type": "string" },
+        "xarray_version":     { "type": "string" },
+        "numpy_version":      { "type": "string" },
+        "geopandas_version":  { "type": "string" },
+        "script_commit":      { "type": "string", "description": "Git commit hash of scripts/" },
+        "agent_config_hash":  { "type": "string", "description": "SHA-256 of agent_config.yaml" },
+        "platform":           { "type": "string" }
       }
     },
 
@@ -133,7 +134,7 @@
 
     "summary": {
       "type": "object",
-      "required": ["total_slices", "succeeded", "failed", "duration_seconds"],
+      "required": ["total_slices", "succeeded", "failed", "warnings", "skipped", "duration_seconds"],
       "properties": {
         "total_slices":    { "type": "integer" },
         "succeeded":       { "type": "integer" },

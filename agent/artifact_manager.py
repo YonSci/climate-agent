@@ -14,8 +14,19 @@ _CONFIG_PATH  = _PROJECT_ROOT / "agent_config.yaml"
 
 
 def _load_config() -> dict:
-    with open(_CONFIG_PATH) as f:
-        return yaml.safe_load(f)
+    try:
+        with open(_CONFIG_PATH) as f:
+            return yaml.safe_load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"agent_config.yaml not found at {_CONFIG_PATH}. "
+            "Copy the template from the repository root and adjust paths for your machine."
+        ) from None
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to parse agent_config.yaml ({_CONFIG_PATH}): {exc}. "
+            "Check the file for YAML syntax errors."
+        ) from exc
 
 
 _cfg = _load_config()
