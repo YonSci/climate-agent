@@ -149,7 +149,17 @@ python run_agent.py \
     --dry-run
 ```
 
-**Resume a failed run:**
+**Resume a failed run (auto-detect latest failure):**
+```bash
+python run_agent.py \
+    --countries eth ken \
+    --variables tas rh pr vpd \
+    --scenario historical \
+    --period 1981 2023 \
+    --resume-latest
+```
+
+**Resume a specific failed run:**
 ```bash
 python run_agent.py \
     --countries eth ken \
@@ -159,11 +169,21 @@ python run_agent.py \
     --resume run_20260506_143000
 ```
 
-**Inspect a completed run:**
+**Inspect and list completed runs:**
 ```bash
-python run_agent.py --validate-run run_20260506_143000
-python run_agent.py --validate-run run_20260506_143000 --checks   # show per-check detail
+python run_agent.py --list-runs                          # table of all runs
+python run_agent.py --list-runs --failed                 # only runs with failures
+python run_agent.py --list-runs --limit 10               # most recent 10
+python run_agent.py --validate-run run_20260506_143000   # detail for one run
 ```
+
+**Export outputs for delivery:**
+```bash
+python run_agent.py \
+    --export-run run_20260506_143000 \
+    --export-to /path/to/delivery/
+```
+Copies all output NetCDFs from the run to the destination and writes a `delivery_manifest.json`.
 
 ---
 
@@ -183,6 +203,14 @@ python run_agent.py --validate-run run_20260506_143000 --checks   # show per-che
 | `--skip-preflight` | No | Bypass environment checks (not recommended) |
 | `--log-level` | No | `DEBUG` · `INFO` (default) · `WARNING` · `ERROR` |
 | `--validate-run [ID]` | No | Summarise a completed run manifest; early-exit mode |
+| `--list-runs` | No | Print a table of all completed runs with status counts |
+| `--failed` | No | With `--list-runs`: show only runs that recorded failures |
+| `--limit N` | No | With `--list-runs`: cap the number of rows shown |
+| `--resume-latest` | No | Auto-resume the most recent run that recorded any failure |
+| `--export-run RUN_ID` | No | Copy a run's output files to a delivery directory |
+| `--export-to DIR` | No | Destination for `--export-run` (required when using that flag) |
+| `--force` | No | Re-run stages even if all expected outputs already exist on disk |
+| `--manifests-dir DIR` | No | Override default `runs/manifests/` path |
 
 ---
 
@@ -190,20 +218,24 @@ python run_agent.py --validate-run run_20260506_143000 --checks   # show per-che
 
 ```
 data/
-├── raw/
-│   ├── agera5/{variable}/{variable}_agera5_{YYYY}.nc
-│   ├── chirps/chirps_v2.0_{YYYY}.days_p05.nc
-│   └── isimip/{model}/{scenario}/{variable}/...
-├── intermediate/{country}/{variable}/
-│   └── {variable}_{country}_{source}_merged_{start}-{end}.nc
-├── final/{country}/{scenario}/{variable}/
-│   └── {variable}_{country}_{scenario}_{start}-{end}_0p25deg.nc
+├── {country}_temperature/netcdf/      ← raw AgERA5 tas (daily, per country)
+├── {country}_relative_humidity_mean/netcdf/  ← raw AgERA5 rh
+├── {country}_vapour_pressure_deficit/netcdf/ ← raw AgERA5 vpd
+├── {country}_chirips/                 ← CHIRPS annual precipitation files
+├── projection_data/isimip-download-{country}/{scenario}/{variable}/ ← ISIMIP
+│
+├── merged_files/                      ← merged, regridded, and clipped outputs
+│   ├── {country}_{variable}_{start}_{end}.nc              (merged intermediate)
+│   ├── {country}_{variable}_{start}_{end}_025deg.nc       (regridded)
+│   └── {country}_{variable}_{start}_{end}_025deg_clipped.nc  (final output)
+│
 └── diagnostics/{run_id}/
-    ├── {country}_{scenario}_{variable}_qa.png
+    ├── {country}_{variable}_{start}_{end}_diagnostic.png
+    ├── {country}_{variable}_{start}_{end}_qc.json
     └── run_report.json
 
 runs/
-├── manifests/{run_id}.json
+├── manifests/{run_id}.json            ← full structured run manifest
 └── logs/{run_id}.log
 ```
 
@@ -228,6 +260,35 @@ Every pipeline stage is validated before the next one starts. Results are record
 | Flat/saturated field detection | warn | warn |
 
 On validation failure the agent retries the failed slice, falls back to legacy naming variants, and marks the slice `FAILED` in the manifest if still unresolved — other slices continue.
+
+---
+
+## Delivery
+
+Once a run completes, export its output files to a delivery directory for downstream users:
+
+```bash
+# List completed runs and pick a run_id
+python run_agent.py --list-runs
+
+# Export all output NetCDFs from that run
+python run_agent.py \
+    --export-run run_20260507_212038 \
+    --export-to /path/to/delivery/
+```
+
+The command copies every output file recorded in the run manifest to the destination directory and writes a `delivery_manifest.json` with file sizes, copy counts, and the original run request. Files that have been deleted or moved since the run are reported as skipped.
+
+---
+
+## Idempotency and Re-runs
+
+The agent is designed to be safe to re-run:
+
+- **Skip-if-done**: if all expected output files for a stage already exist on disk, the stage is skipped automatically. Re-running the same command after a successful run completes in seconds.
+- **`--force`**: bypass skip-if-done and re-execute all stages regardless.
+- **`--resume RUN_ID`**: resume from a previous run manifest, skipping stages already recorded as SUCCESS.
+- **`--resume-latest`**: automatically find and resume the most recent run that recorded any failure.
 
 ---
 
@@ -291,7 +352,7 @@ climate-agent/
 │   ├── kenya_adm0.geojson
 │   └── somalia_adm0.geojson
 │
-└── tests/                       ← 426 unit + integration tests
+└── tests/                       ← 546 unit + integration tests
     ├── test_validation_engine.py
     ├── test_orchestrator.py
     ├── test_preflight.py
@@ -316,7 +377,7 @@ All runtime knobs live in [`agent_config.yaml`](agent_config.yaml). Key sections
 ## Running Tests
 
 ```bash
-pytest tests/ -q                  # all 426 tests
+pytest tests/ -q                  # all 546 tests
 pytest tests/ -q --cov=agent      # with coverage report
 pytest tests/test_validation_engine.py -v   # single module
 ```

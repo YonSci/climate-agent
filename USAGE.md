@@ -144,10 +144,15 @@ python run_agent.py \
 If a stage fails or the process is interrupted, skip already-completed stages:
 
 ```bash
-# 1. Find the run ID of the failed run
-python scripts/validate_run.py --list
+# Auto-resume the most recent failed run
+python run_agent.py \
+  --countries eth ken \
+  --variables tas rh \
+  --scenario historical \
+  --period 2010 2023 \
+  --resume-latest
 
-# 2. Resume — successful stages are skipped, failed ones re-run
+# Resume a specific run by ID
 python run_agent.py \
   --countries eth ken \
   --variables tas rh \
@@ -158,24 +163,28 @@ python run_agent.py \
 
 ---
 
-## Inspecting Run Results
+## Inspecting and Listing Run Results
 
 ```bash
-# Latest run (default)
-python scripts/validate_run.py
+# List all runs (most recent first)
+python run_agent.py --list-runs
 
-# Specific run
-python scripts/validate_run.py --run-id run_20260506_143000
+# Show only failed runs
+python run_agent.py --list-runs --failed
 
-# List all runs with summary counts
-python scripts/validate_run.py --list
+# Limit to most recent 5
+python run_agent.py --list-runs --limit 5
+
+# Full detail for a specific run
+python run_agent.py --validate-run run_20260506_143000
+python run_agent.py --validate-run run_20260506_143000 --checks   # per-check breakdown
 ```
 
-The report shows:
-- Per-stage status: `OK` / `FAIL` / `WARN` / `SKIP`
+The `--validate-run` report shows:
+- Per-stage status: `SUCCESS` / `FAILED` / `WARNING` / `SKIPPED`
 - Validation check results per output file
 - Failed-slice reasons with truncated stderr
-- Output file paths and whether they exist on disk
+- Output file paths and whether they currently exist on disk
 
 ---
 
@@ -210,14 +219,20 @@ python run_agent.py \
 
 ```
 data/
-├── raw/                                 # Downloaded source files — never overwritten
-│   ├── agera5/{variable}/
-│   └── chirps/
-├── intermediate/{country}/{variable}/   # Merged / regridded working files
-├── final/{country}/{scenario}/{variable}/
-│   └── {variable}_{country}_{scenario}_{start}-{end}_0p25deg.nc
+├── {country}_temperature/netcdf/        # Raw AgERA5 daily tas files
+├── {country}_relative_humidity_mean/netcdf/  # Raw AgERA5 daily rh files
+├── {country}_chirips/                   # Raw CHIRPS annual files
+├── projection_data/isimip-download-{country}/{scenario}/{variable}/
+│
+├── merged_files/                        # All processed outputs live here
+│   ├── {country}_{var}_{start}_{end}.nc              ← merged intermediate
+│   ├── {country}_{var}_{start}_{end}_025deg.nc       ← regridded
+│   └── {country}_{var}_{start}_{end}_025deg_clipped.nc  ← final output
+│
 └── diagnostics/{run_id}/
-    └── {country}_{scenario}_{variable}_qa.png
+    ├── {country}_{var}_{start}_{end}_diagnostic.png
+    ├── {country}_{var}_{start}_{end}_qc.json
+    └── run_report.json
 
 runs/
 ├── manifests/{run_id}.json              # Full run manifest (JSON)
@@ -231,19 +246,25 @@ runs/
 ```bash
 # 1. Preview — confirm stages and script args before committing
 python run_agent.py --countries eth --variables tas rh pr \
-  --scenario historical --period 2010 2023 --dry-run
+  --scenario historical --period 2010 2025 --dry-run
 
 # 2. Execute
 python run_agent.py --countries eth --variables tas rh pr \
-  --scenario historical --period 2010 2023 --workers 1
+  --scenario historical --period 2010 2025 --diagnostics
 
-# 3. Inspect results
-python scripts/validate_run.py
+# 3. List completed runs and inspect the result
+python run_agent.py --list-runs
+python run_agent.py --validate-run run_20260507_212038
 
 # 4. If a stage failed, fix the underlying data issue then resume
 python run_agent.py --countries eth --variables tas rh pr \
-  --scenario historical --period 2010 2023 \
-  --resume run_20260506_143000
+  --scenario historical --period 2010 2025 \
+  --resume-latest
+
+# 5. Export outputs for delivery
+python run_agent.py \
+  --export-run run_20260507_212038 \
+  --export-to /path/to/delivery/
 ```
 
 ---
@@ -253,7 +274,7 @@ python run_agent.py --countries eth --variables tas rh pr \
 ```
 python run_agent.py [OPTIONS]
 
-Required:
+Required (pipeline mode):
   --countries CODE [CODE ...]   Country short code(s): eth, ken, som
   --variables VAR [VAR ...]     Variable(s): tas, rh, vpd, pr
   --scenario SCENARIO           Climate scenario: historical, ssp245, ssp585
@@ -261,15 +282,25 @@ Required:
 
 Execution:
   --workers N                   Parallel worker count (default: 1)
-                                 When N > 1 and multiple countries, runs one
-                                 subprocess per country concurrently.
   --mode {strict,fast}          Validation mode (default: strict)
   --diagnostics                 Produce QA diagnostic plots for each output
   --dry-run                     Print planned commands without executing
-  --resume RUN_ID               Resume from a previous run; skip SUCCESS stages
+  --force                       Re-run stages even if outputs already exist
+  --resume RUN_ID               Resume a prior run; skip stages already SUCCESS
+  --resume-latest               Auto-resume the most recent run with failures
+
+Observability (early-exit modes, no pipeline required):
+  --list-runs                   Print a table of all completed run manifests
+  --failed                      With --list-runs: show only failed runs
+  --limit N                     With --list-runs: cap output to N rows
+  --validate-run RUN_ID         Summarise a specific completed run manifest
+  --checks                      With --validate-run: show per-check detail
+  --export-run RUN_ID           Copy a run's output files to a delivery dir
+  --export-to DIR               Destination directory for --export-run
 
 Environment:
   --skip-preflight              Skip preflight environment checks
   --log-level {DEBUG,INFO,WARNING,ERROR}
                                 Logging verbosity (default: INFO)
+  --manifests-dir DIR           Override default runs/manifests/ location
 ```
