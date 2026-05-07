@@ -227,7 +227,7 @@ class TestRunPreflightEscalation:
         assert not report.has_errors
         assert any("eth" in w for w in report.warnings)
 
-    def test_missing_source_dir_becomes_warning_not_error(self):
+    def test_missing_source_dir_becomes_error(self):
         with patch("agent.preflight.check_dependencies",
                    return_value={"xarray": "2024.1"}), \
              patch("agent.preflight.check_scripts",
@@ -238,8 +238,8 @@ class TestRunPreflightEscalation:
              patch("agent.preflight.check_source_dirs",
                    return_value={"eth/pr/chirps": "MISSING: /path/chirps"}):
             report = run_preflight(_GOOD_REQUEST)
-        assert not report.has_errors
-        assert any("eth/pr/chirps" in w for w in report.warnings)
+        assert report.has_errors
+        assert any("eth/pr/chirps" in e for e in report.errors)
 
     def test_all_ok_no_errors_no_warnings(self):
         with patch("agent.preflight.check_dependencies",
@@ -255,7 +255,7 @@ class TestRunPreflightEscalation:
         assert not report.has_errors
         assert report.warnings == []
 
-    def test_error_and_warning_both_reported(self):
+    def test_dep_error_and_boundary_warning_both_reported(self):
         with patch("agent.preflight.check_dependencies",
                    return_value={"xarray": "MISSING (not installed)"}), \
              patch("agent.preflight.check_scripts",

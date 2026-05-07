@@ -109,6 +109,21 @@ def wait_before_retry(attempt: int) -> None:
     time.sleep(wait)
 
 
+# ── Historical source data directory layout ───────────────────────────────────
+# These mirror the directory layout expected by the historical merge scripts.
+# All paths are relative to ROOT/data/. Format: {country} → full country name.
+HIST_SOURCE_DIRS: dict[str, str] = {
+    "rh":  "{country}_relative_humidity_mean/netcdf",
+    "tas": "{country}_temperature/netcdf",
+    "vpd": "{country}_vapour_pressure_deficit/netcdf",
+    "pr":  "{country}_chirips",  # CHIRPS precipitation (note: legacy folder name)
+}
+
+# ISIMIP directory layout for projection source data
+ISIMIP_SOURCE_DIR = "projection_data/isimip-download-{country}/{scenario}/{source_var}"
+ISIMIP_SOURCE_VAR: dict[str, str] = {"rh": "hurs", "pr": "pr", "tas": "tas"}
+
+
 # ── Legacy filename fallbacks ─────────────────────────────────────────────────
 
 def legacy_vpd_fallbacks(country: str, scenario: str,

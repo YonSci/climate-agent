@@ -13,9 +13,9 @@ import logging
 import sys
 from pathlib import Path
 
-from agent.policy import should_retry, wait_before_retry
+from agent.policy import should_retry, wait_before_retry, SHORT_TO_LONG, HIST_SOURCE_DIRS
 from agent.state_store import StateStore
-from agent.artifact_manager import SCRIPTS_DIR, diagnostics_dir
+from agent.artifact_manager import SCRIPTS_DIR, ROOT, diagnostics_dir
 from agent.validation_engine import ValidationEngine
 from agent.output_resolver import ExpectedOutput
 
@@ -189,6 +189,76 @@ class Orchestrator:
         )
         return False
 
+    def _check_and_download_source(
+        self,
+        countries: list[str],
+        variables: list[str],
+        year_start: int,
+        year_end: int,
+    ) -> None:
+        """
+        Download missing AgERA5 / CHIRPS raw files before historical merge stages.
+
+        Only acts when the merge scripts' expected source directory is absent or empty.
+        Downloads to the canonical raw/ location; does not raise on failure — missing
+        sources will surface as errors when the workflow script itself runs.
+        """
+        import connectors.agera5_connector as _agera5
+        import connectors.chirps_connector as _chirps
+
+        data_root = ROOT / "data"
+
+        for country in countries:
+            long = SHORT_TO_LONG[country]
+            for var in variables:
+                src_template = HIST_SOURCE_DIRS.get(var)
+                if src_template is None:
+                    continue
+
+                src_dir = data_root / src_template.format(country=long)
+                if src_dir.exists() and any(src_dir.iterdir()):
+                    logger.debug(f"Source present for {country}/{var}: {src_dir}")
+                    continue
+
+                logger.info(
+                    f"Source dir absent or empty for {country}/{var} "
+                    f"({src_dir}) — attempting raw download"
+                )
+
+                if var == "pr":
+                    for year in range(year_start, year_end + 1):
+                        raw = _chirps.expected_path(year)
+                        if raw.exists():
+                            continue
+                        cmd = _chirps.build_cmd(year)
+                        logger.info(f"Downloading CHIRPS {year}")
+                        res = subprocess.run(cmd, capture_output=True, text=True,
+                                             cwd=str(_PROJECT_ROOT))
+                        if res.returncode != 0:
+                            logger.warning(
+                                f"CHIRPS download failed [{year}]: "
+                                f"{_tail(res.stderr, 5)}"
+                            )
+                        else:
+                            logger.info(f"  -> {raw}")
+
+                elif var in _agera5.SUPPORTED_VARIABLES:
+                    for year in range(year_start, year_end + 1):
+                        raw = _agera5.expected_path(var, year)
+                        if raw.exists():
+                            continue
+                        cmd = _agera5.build_cmd(var, year)
+                        logger.info(f"Downloading AgERA5 {var}/{year}")
+                        res = subprocess.run(cmd, capture_output=True, text=True,
+                                             cwd=str(_PROJECT_ROOT))
+                        if res.returncode != 0:
+                            logger.warning(
+                                f"AgERA5 download failed [{var}/{year}]: "
+                                f"{_tail(res.stderr, 5)}"
+                            )
+                        else:
+                            logger.info(f"  -> {raw}")
+
     def run_tool(self, *,
                  stage: str,
                  script_name: str,
@@ -225,6 +295,22 @@ class Orchestrator:
         if self.store.is_complete(stage, country_key, variable_key, scenario):
             logger.info(f"SKIP tool {stage} (already complete)")
             return True
+
+        # ── Pre-stage: download missing source files for historical runs ─────────
+        if script_name == "run_historical_workflow.py" and scenario == "historical":
+            str_args = [str(a) for a in args]
+
+            def _get_int_arg(flag: str, default: int) -> int:
+                try:
+                    return int(str_args[str_args.index(flag) + 1])
+                except (ValueError, IndexError):
+                    return default
+
+            self._check_and_download_source(
+                countries, variables,
+                _get_int_arg("--start-year", 1981),
+                _get_int_arg("--end-year", 2023),
+            )
 
         script_path = SCRIPTS_DIR / script_name
         cmd = [sys.executable, str(script_path)] + [str(a) for a in args]

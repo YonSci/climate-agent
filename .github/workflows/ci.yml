@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master", "develop"]
+  pull_request:
+    branches: ["main", "master", "develop"]
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          # Install without cartopy (requires system libs not available in CI);
+          # all other packages are pure-Python or have pre-built wheels.
+          pip install \
+            "xarray>=2024.1" "numpy>=1.26" "pandas>=2.1" "scipy>=1.12" \
+            "netCDF4>=1.6" "dask>=2024.1" "h5netcdf>=1.3" \
+            "geopandas>=0.14" "rioxarray>=0.15" "pyproj>=3.6" \
+            "shapely>=2.0" "fiona>=1.9" \
+            "matplotlib>=3.8" \
+            "cdsapi>=0.6" \
+            "pyyaml>=6.0" "jsonschema>=4.21" "tqdm>=4.66" \
+            "pytest>=8.0" "pytest-cov>=5.0"
+          pip install -e .
+
+      - name: Create codes/ symlink (workflow scripts reference codes/ not scripts/)
+        run: ln -s scripts codes
+
+      - name: Run tests
+        run: |
+          pytest \
+            --tb=short \
+            --cov=agent \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            -q
+
+      - name: Upload coverage report
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 7

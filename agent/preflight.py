@@ -12,7 +12,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent.artifact_manager import ROOT, SCRIPTS_DIR, BOUNDARIES_DIR
-from agent.policy import SHORT_TO_LONG, SCENARIO_TO_SCRIPT
+from agent.policy import (
+    SHORT_TO_LONG, SCENARIO_TO_SCRIPT,
+    HIST_SOURCE_DIRS, ISIMIP_SOURCE_DIR, ISIMIP_SOURCE_VAR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,16 +27,6 @@ _REQUIRED_PACKAGES = [
     # cartopy omitted: requires system-level GEOS/PROJ libs and is
     # checked separately in environments where it is expected.
 ]
-
-# Source directory layout expected by the existing workflow scripts
-_AGERA5_VAR_DIR = {
-    "rh":  "{country}_relative_humidity_mean",
-    "tas": "{country}_temperature",
-    "vpd": "{country}_vapour_pressure_deficit",
-}
-_CHIRPS_DIR = "{country}_chirips"
-_ISIMIP_DIR = "projection_data/isimip-download-{country}/{scenario}/{source_var}"
-_ISIMIP_SOURCE_VAR = {"rh": "hurs", "pr": "pr", "tas": "tas"}
 
 
 @dataclass
@@ -108,22 +101,19 @@ def check_source_dirs(request: dict) -> dict[str, str]:
 
         if scenario == "historical":
             for var in variables:
-                if var == "pr":
-                    d = data_root / _CHIRPS_DIR.format(country=long)
-                    key = f"{country}/{var}/chirps"
-                elif var in _AGERA5_VAR_DIR:
-                    d = data_root / _AGERA5_VAR_DIR[var].format(country=long) / "netcdf"
-                    key = f"{country}/{var}/agera5"
-                else:
+                src_template = HIST_SOURCE_DIRS.get(var)
+                if src_template is None:
                     continue
+                d = data_root / src_template.format(country=long)
+                key = f"{country}/{var}/{'chirps' if var == 'pr' else 'agera5'}"
                 results[key] = "OK" if d.exists() else f"MISSING: {d}"
         else:
             script_scenario = SCENARIO_TO_SCRIPT[scenario]
             for var in variables:
                 if var == "vpd":
                     continue  # VPD is derived; its inputs (rh, tas) are checked separately
-                src_var = _ISIMIP_SOURCE_VAR.get(var, var)
-                d = data_root / _ISIMIP_DIR.format(
+                src_var = ISIMIP_SOURCE_VAR.get(var, var)
+                d = data_root / ISIMIP_SOURCE_DIR.format(
                     country=long, scenario=script_scenario, source_var=src_var
                 )
                 key = f"{country}/{var}/isimip/{scenario}"
@@ -168,7 +158,10 @@ def run_preflight(request: dict) -> PreflightReport:
     sources = check_source_dirs(request)
     for key, status in sources.items():
         if status != "OK":
-            report.warnings.append(f"Source dir [{key}]: {status}")
+            report.errors.append(
+                f"Source data missing [{key}]: {status}. "
+                "Run the appropriate download script or place source files manually."
+            )
 
     if report.has_errors:
         logger.error(f"Preflight failed:\n{report}")

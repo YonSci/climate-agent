@@ -35,6 +35,31 @@ _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
+
+def _ensure_codes_alias() -> None:
+    """Create codes/ → scripts/ alias required by the workflow scripts.
+
+    The workflow scripts call sub-scripts via WORKSPACE_ROOT/codes/... .
+    On a fresh clone only scripts/ exists; codes/ must be created as a
+    symlink (Unix) or directory junction (Windows) before any run.
+    """
+    codes = _HERE / "codes"
+    scripts = _HERE / "scripts"
+    if codes.exists() or codes.is_symlink():
+        return
+    try:
+        import os
+        os.symlink(scripts, codes, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        import subprocess
+        subprocess.run(
+            ["cmd", "/c", "mklink", "/J", str(codes), str(scripts)],
+            check=True, capture_output=True,
+        )
+
+
+_ensure_codes_alias()
+
 from agent.policy import validate_request, VALID_COUNTRIES, VALID_VARIABLES, VALID_SCENARIOS
 from agent.preflight import run_preflight
 from agent.task_router import TaskRouter
@@ -118,6 +143,40 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _run_validate_mode() -> int | None:
+    """Handle --validate-run [RUN_ID] [--checks] [--no-color] early exit.
+
+    Invoked before parse_args() so users don't need to supply --countries etc.
+    Returns exit code when handled, None to continue normal pipeline mode.
+    """
+    if "--validate-run" not in sys.argv:
+        return None
+    import importlib.util as _ilu
+    args = sys.argv[1:]
+    idx = args.index("--validate-run")
+    run_id = args[idx + 1] if idx + 1 < len(args) and not args[idx + 1].startswith("-") else None
+    show_checks = "--checks" in args
+    no_color = "--no-color" in args
+
+    vr_path = _HERE / "scripts" / "validate_run.py"
+    spec = _ilu.spec_from_file_location("validate_run", vr_path)
+    vr = _ilu.module_from_spec(spec)
+    spec.loader.exec_module(vr)
+
+    vr_args = []
+    if run_id:
+        vr_args += ["--run-id", run_id]
+    if show_checks:
+        vr_args += ["--checks"]
+    if no_color:
+        vr_args += ["--no-color"]
+    orig_argv, sys.argv = sys.argv[:], [sys.argv[0]] + vr_args
+    try:
+        return vr.main()
+    finally:
+        sys.argv = orig_argv
+
+
 def _run_country_plan(
     plan,
     orch,
@@ -150,6 +209,10 @@ def _run_country_plan(
 
 
 def main() -> int:
+    code = _run_validate_mode()
+    if code is not None:
+        return code
+
     args = parse_args()
 
     run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
