@@ -1,0 +1,19 @@
+{
+  "total_slices": 2,
+  "succeeded": 1,
+  "failed": 1,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 98.7,
+  "failed_slices": [
+    {
+      "country": "ken",
+      "variable": "rh",
+      "scenario": "ssp245",
+      "stage": "regrid",
+      "reason": "Tool run_projection_workflow.py failed after 3 attempt(s). Last stderr: data/isimip-download-kenya/ssp_245/hurs', '--target-grid', 'data/merged_files/kenya_pr_2010_2025.nc', '--output', 'data/merged_files/kenya_rh_ssp245_2040_2070_025deg.nc', '--method', 'linear', '--start-year', '2040', '--end-year', '2070', '--compression-level', '0']' returned non-zero exit status 1."
+    }
+  ],
+  "output_files": [],
+  "diagnostic_files": []
+}

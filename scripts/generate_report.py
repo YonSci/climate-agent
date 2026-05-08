@@ -54,7 +54,16 @@ def load_manifests(manifests_dir: Path) -> list[dict]:
 def embed_image(path_str: str) -> str | None:
     p = Path(path_str)
     if not p.exists():
-        return None
+        # Absolute path failed (e.g., Windows path stored in manifest, run on Linux CI).
+        # Re-anchor to project root using the data/diagnostics/... suffix.
+        norm = path_str.replace("\\", "/")
+        marker = "data/diagnostics/"
+        idx = norm.find(marker)
+        if idx == -1:
+            return None
+        p = _ROOT / norm[idx:]
+        if not p.exists():
+            return None
     try:
         data = base64.b64encode(p.read_bytes()).decode()
         return f"data:image/png;base64,{data}"

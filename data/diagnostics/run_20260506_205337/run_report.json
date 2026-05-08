@@ -1,0 +1,19 @@
+{
+  "total_slices": 1,
+  "succeeded": 0,
+  "failed": 1,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 120.2,
+  "failed_slices": [
+    {
+      "country": "eth",
+      "variable": "rh",
+      "scenario": "ssp245",
+      "stage": "regrid",
+      "reason": "Tool run_projection_workflow.py failed after 3 attempt(s). Last stderr: es/clip_netcdf_by_shapefile.py', '--input', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc', '--boundary', 'data/boundaries/ethiopia_adm0.geojson', '--output', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc', '--compression-level', '0']' returned non-zero exit status 1."
+    }
+  ],
+  "output_files": [],
+  "diagnostic_files": []
+}

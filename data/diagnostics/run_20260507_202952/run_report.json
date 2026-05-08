@@ -1,0 +1,19 @@
+{
+  "total_slices": 1,
+  "succeeded": 0,
+  "failed": 1,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 2060.7,
+  "failed_slices": [
+    {
+      "country": "eth",
+      "variable": "tas",
+      "scenario": "historical",
+      "stage": "merge",
+      "reason": "Tool run_historical_workflow.py failed after 3 attempt(s). Last stderr:   )\n    ^\n  File \"D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py\", line 264, in validate_output\n    raise ValueError(\n        f\"Time range mismatch for {output_path.name}: {int(years.min())}-{int(years.max())}\"\n    )\nValueError: Time range mismatch for ethiopia_temp_2010_2020.nc: 2010-2025"
+    }
+  ],
+  "output_files": [],
+  "diagnostic_files": []
+}

@@ -1,0 +1,19 @@
+{
+  "total_slices": 1,
+  "succeeded": 0,
+  "failed": 1,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 92.3,
+  "failed_slices": [
+    {
+      "country": "ken",
+      "variable": "pr",
+      "scenario": "historical",
+      "stage": "merge",
+      "reason": "Tool run_historical_workflow.py failed after 3 attempt(s). Last stderr: ^^^^^^^^^^^^^^^\n  File \"D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py\", line 218, in ensure_path_exists\n    raise FileNotFoundError(f\"Expected output was not written: {path}\")\nFileNotFoundError: Expected output was not written: D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_pr_2010_2025.nc"
+    }
+  ],
+  "output_files": [],
+  "diagnostic_files": []
+}

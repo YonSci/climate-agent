@@ -1,0 +1,19 @@
+{
+  "total_slices": 1,
+  "succeeded": 0,
+  "failed": 1,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 14.0,
+  "failed_slices": [
+    {
+      "country": "eth",
+      "variable": "tas",
+      "scenario": "historical",
+      "stage": "merge",
+      "reason": "Tool run_historical_workflow.py failed after 1 attempt(s). Last stderr: "
+    }
+  ],
+  "output_files": [],
+  "diagnostic_files": []
+}

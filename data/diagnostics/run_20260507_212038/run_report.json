@@ -1,0 +1,71 @@
+{
+  "total_slices": 1,
+  "succeeded": 1,
+  "failed": 0,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 20.4,
+  "failed_slices": [],
+  "output_files": [
+    "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_temp_2010_2025_025deg_clipped.nc"
+  ],
+  "diagnostic_files": [
+    "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260507_212038\\ethiopia_temp_2010_2025_025deg_clipped_diagnostic.png"
+  ],
+  "qc_stats": {
+    "ethiopia_temp_2010_2025_025deg_clipped.nc": {
+      "generated_at": "2026-05-07T21:20:58.614454+00:00",
+      "file_variable": "t2m",
+      "units": "\u00b0C",
+      "dims": {
+        "time": 5844,
+        "lat": 45,
+        "lon": 59
+      },
+      "grid": {
+        "lat_step_deg": 0.25,
+        "lon_step_deg": 0.25,
+        "lat_direction": "ascending",
+        "lon_direction": "ascending",
+        "lat_min": 3.625,
+        "lat_max": 14.625,
+        "lon_min": 33.125,
+        "lon_max": 47.625
+      },
+      "time": {
+        "n_timesteps": 5844,
+        "n_unique": 5844,
+        "duplicate_count": 0,
+        "missing_years": [],
+        "n_missing_years": 0
+      },
+      "coverage": {
+        "total_pixels": 15515820,
+        "finite_pixels": 8643276,
+        "nan_pixels": 6872544,
+        "finite_ratio": 0.5571
+      },
+      "value_stats": {
+        "min": 3.738,
+        "p01": 11.4096,
+        "p05": 14.4933,
+        "p25": 19.4721,
+        "median": 23.4754,
+        "p75": 26.8846,
+        "p95": 31.2599,
+        "p99": 34.8794,
+        "max": 40.717,
+        "mean": 23.178,
+        "std": 5.1701
+      },
+      "missing_fraction_by_timestep": {
+        "min": 0.4429,
+        "max": 0.4429,
+        "mean": 0.4429,
+        "n_timesteps_above_20pct": 5844,
+        "n_timesteps_above_50pct": 0
+      },
+      "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_temp_2010_2025_025deg_clipped.nc"
+    }
+  }
+}

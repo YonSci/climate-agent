@@ -1,7 +1,9 @@
 # ── Large data files ─────────────────────────────────────────
-data/
+# data/* ignores direct children but allows data/diagnostics/ to be un-ignored below
+data/*
+!data/diagnostics/
 runs/logs/
-# runs/manifests/ is tracked so GitHub Pages can read run history
+# runs/manifests/ and data/diagnostics/ are tracked so GitHub Pages can embed plots
 
 # ── Windows directory junction (local alias for scripts/) ────
 /codes
