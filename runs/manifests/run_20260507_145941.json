@@ -1,0 +1,75 @@
+{
+  "run_id": "run_20260507_145941",
+  "timestamp": "2026-05-07T14:59:41.532182+00:00",
+  "request": {
+    "countries": [
+      "eth"
+    ],
+    "variables": [
+      "vpd"
+    ],
+    "scenario": "ssp245",
+    "period": [
+      2040,
+      2070
+    ],
+    "quality_level": "fast",
+    "diagnostics": false,
+    "workers": 1
+  },
+  "environment": {
+    "python_version": "3.13.3",
+    "xarray_version": "2026.4.0",
+    "numpy_version": "2.3.2",
+    "geopandas_version": "1.1.3",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "script_commit": "scripts:1c1bf3cf"
+  },
+  "stages": [
+    {
+      "stage": "vpd_compute",
+      "country": "eth",
+      "variable": "vpd",
+      "scenario": "ssp245",
+      "command": "C:\\Python313\\python.exe D:\\IRLI\\climate-agent\\scripts\\run_future_vpd_workflow.py --country ethiopia --scenario ssp_245 --start-year 2040 --end-year 2070 --max-workers 1 --fast-mode",
+      "finished_at": "2026-05-07T14:59:45.143627+00:00",
+      "exit_code": 0,
+      "attempt": 1,
+      "status": "SUCCESS",
+      "input_files": [],
+      "output_file": "",
+      "validation": {
+        "ethiopia_vpd_ssp245_2040_2070_025deg_clipped.nc": {
+          "existence": "OK",
+          "variable_present": "OK",
+          "non_nan_coverage": "OK",
+          "time_coverage": "OK",
+          "daily_axis": "OK",
+          "units": "OK",
+          "grid_match": "SKIP",
+          "spatial_bounds": "SKIP",
+          "anomaly": "OK",
+          "distribution": "OK"
+        }
+      },
+      "stdout_tail": "=== ethiopia ssp_245 vpd ===\n[ethiopia ssp_245] Checking input files...\n[ethiopia ssp_245] Opening inputs...\n[ethiopia ssp_245] Resampling tas to daily mean...\n[ethiopia ssp_245] Resampling rh to daily mean...\n[ethiopia ssp_245] Checking requested year coverage...\n[ethiopia ssp_245] Aligning daily tas and rh timestamps...\n[ethiopia ssp_245] Computing Tetens VPD...\n[ethiopia ssp_245] Checking aligned output coverage...\n[ethiopia ssp_245] Writing output to data/merged_files/ethiopia_vpd_ssp245_2040_2070_025deg_clipped.nc...\nWrote output file: D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_vpd_ssp245_2040_2070_025deg_clipped.nc\n[ethiopia ssp_245] Validating output...\nWorkflow slice completed in 1.59s\n\nFuture VPD workflow completed successfully.",
+      "stderr_tail": "",
+      "error_message": "",
+      "fallback_used": false,
+      "fallback_path": ""
+    }
+  ],
+  "summary": {
+    "total_slices": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "duration_seconds": 3.5,
+    "failed_slices": [],
+    "output_files": [
+      "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_vpd_ssp245_2040_2070_025deg_clipped.nc"
+    ],
+    "diagnostic_files": []
+  }
+}

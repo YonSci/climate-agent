@@ -1,0 +1,68 @@
+{
+  "run_id": "run_20260506_205337",
+  "timestamp": "2026-05-06T20:53:37.862506+00:00",
+  "request": {
+    "countries": [
+      "eth"
+    ],
+    "variables": [
+      "rh"
+    ],
+    "scenario": "ssp245",
+    "period": [
+      2040,
+      2070
+    ],
+    "quality_level": "fast",
+    "diagnostics": false,
+    "workers": 1
+  },
+  "environment": {
+    "python_version": "3.13.3",
+    "xarray_version": "2026.4.0",
+    "numpy_version": "2.3.2",
+    "geopandas_version": "1.1.3",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "script_commit": "unknown"
+  },
+  "stages": [
+    {
+      "stage": "regrid",
+      "country": "eth",
+      "variable": "rh",
+      "scenario": "ssp245",
+      "command": "C:\\Python313\\python.exe D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py --country ethiopia --scenario ssp_245 --variable rh --start-year 2040 --end-year 2070 --max-workers 1 --fast-mode",
+      "finished_at": "2026-05-06T20:55:38.135217+00:00",
+      "exit_code": 1,
+      "attempt": 3,
+      "status": "FAILED",
+      "input_files": [],
+      "output_file": "",
+      "validation": {},
+      "stdout_tail": "Loaded source dataset from: data\\projection_data\\isimip-download-ethiopia\\ssp_245\\hurs (4 files)\nClipped source dataset to years 2040-2070 on 'time' (14610 -> 11323 records).\nApplied variable renaming and regridding using target grid: data\\merged_files\\ethiopia_pr_2010_2025.nc (method=linear).\nWrote output file: data\\merged_files\\ethiopia_rh_ssp245_2040_2070_025deg.nc\n\n=== ethiopia ssp_245 rh ===\nRunning rename/regrid step...\n$ C:\\Python313\\python.exe codes/rename_and_regrid_netcdf.py --source data/projection_data/isimip-download-ethiopia/ssp_245/hurs --target-grid data/merged_files/ethiopia_pr_2010_2025.nc --output data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc --method linear --start-year 2040 --end-year 2070 --compression-level 0\nCompleted in 3.61s\nValidated rename/regrid output in 0.78s\nRunning clip step...\n$ C:\\Python313\\python.exe codes/clip_netcdf_by_shapefile.py --input data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc --boundary data/boundaries/ethiopia_adm0.geojson --output data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc --compression-level 0",
+      "stderr_tail": "Traceback (most recent call last):\n  File \"D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py\", line 521, in <module>\n    main()\n    ~~~~^^\n  File \"D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py\", line 500, in main\n    process_work_item(work_item, args)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py\", line 479, in process_work_item\n    process_one(country, scenario, variable, args)\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py\", line 443, in process_one\n    run_command(clip_shape_command, dry_run=args.dry_run)\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py\", line 199, in run_command\n    subprocess.run(command, cwd=WORKSPACE_ROOT, check=True)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['C:\\\\Python313\\\\python.exe', 'codes/clip_netcdf_by_shapefile.py', '--input', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc', '--boundary', 'data/boundaries/ethiopia_adm0.geojson', '--output', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc', '--compression-level', '0']' returned non-zero exit status 1.",
+      "error_message": "Tool run_projection_workflow.py failed after 3 attempt(s). Last stderr: es/clip_netcdf_by_shapefile.py', '--input', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc', '--boundary', 'data/boundaries/ethiopia_adm0.geojson', '--output', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc', '--compression-level', '0']' returned non-zero exit status 1.",
+      "fallback_used": false,
+      "fallback_path": ""
+    }
+  ],
+  "summary": {
+    "total_slices": 1,
+    "succeeded": 0,
+    "failed": 1,
+    "warnings": 0,
+    "skipped": 0,
+    "duration_seconds": 120.2,
+    "failed_slices": [
+      {
+        "country": "eth",
+        "variable": "rh",
+        "scenario": "ssp245",
+        "stage": "regrid",
+        "reason": "Tool run_projection_workflow.py failed after 3 attempt(s). Last stderr: es/clip_netcdf_by_shapefile.py', '--input', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc', '--boundary', 'data/boundaries/ethiopia_adm0.geojson', '--output', 'data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc', '--compression-level', '0']' returned non-zero exit status 1."
+      }
+    ],
+    "output_files": [],
+    "diagnostic_files": []
+  }
+}

@@ -1,6 +1,7 @@
 # ── Large data files ─────────────────────────────────────────
 data/
-runs/
+runs/logs/
+# runs/manifests/ is tracked so GitHub Pages can read run history
 
 # ── Windows directory junction (local alias for scripts/) ────
 /codes

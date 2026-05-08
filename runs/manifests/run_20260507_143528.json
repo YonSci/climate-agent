@@ -1,0 +1,75 @@
+{
+  "run_id": "run_20260507_143528",
+  "timestamp": "2026-05-07T14:35:28.753667+00:00",
+  "request": {
+    "countries": [
+      "eth"
+    ],
+    "variables": [
+      "vpd"
+    ],
+    "scenario": "historical",
+    "period": [
+      2010,
+      2025
+    ],
+    "quality_level": "fast",
+    "diagnostics": false,
+    "workers": 1
+  },
+  "environment": {
+    "python_version": "3.13.3",
+    "xarray_version": "2026.4.0",
+    "numpy_version": "2.3.2",
+    "geopandas_version": "1.1.3",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "script_commit": "scripts:1c1bf3cf"
+  },
+  "stages": [
+    {
+      "stage": "merge",
+      "country": "eth",
+      "variable": "vpd",
+      "scenario": "historical",
+      "command": "C:\\Python313\\python.exe D:\\IRLI\\climate-agent\\scripts\\run_historical_workflow.py --country ethiopia --variable vpd --start-year 2010 --end-year 2025 --max-workers 1 --fast-mode",
+      "finished_at": "2026-05-07T14:47:00.007652+00:00",
+      "exit_code": 0,
+      "attempt": 1,
+      "status": "SUCCESS",
+      "input_files": [],
+      "output_file": "",
+      "validation": {
+        "ethiopia_vpd_2010_2025_025deg_clipped.nc": {
+          "existence": "OK",
+          "variable_present": "OK",
+          "non_nan_coverage": "OK",
+          "time_coverage": "OK",
+          "daily_axis": "OK",
+          "units": "SKIP",
+          "grid_match": "SKIP",
+          "spatial_bounds": "SKIP",
+          "anomaly": "WARN",
+          "distribution": "OK"
+        }
+      },
+      "stdout_tail": "Time steps: 5844\nLoaded source dataset from: data\\merged_files\\ethiopia_vpd_2010_2025.nc\nApplied variable renaming and regridding using target grid: data\\merged_files\\ethiopia_pr_2010_2025.nc (method=linear).\nWrote output file: data\\merged_files\\ethiopia_vpd_2010_2025_025deg.nc\nInput: data\\merged_files\\ethiopia_vpd_2010_2025_025deg.nc\nBoundary: data\\boundaries\\ethiopia_adm0.geojson\nOutput: data\\merged_files\\ethiopia_vpd_2010_2025_025deg_clipped.nc\n\n=== ethiopia historical vpd ===\nRunning merge step...\n$ C:\\Python313\\python.exe codes/merge_netcdf_ethiopia_vapour_pressure_deficit.py --input-dir data/ethiopia_vapour_pressure_deficit/netcdf --output data/merged_files/ethiopia_vpd_2010_2025.nc\nCompleted in 11m 15.6s\nRunning rename/regrid step...\n$ C:\\Python313\\python.exe codes/rename_and_regrid_netcdf.py --source data/merged_files/ethiopia_vpd_2010_2025.nc --target-grid data/merged_files/ethiopia_pr_2010_2025.nc --output data/merged_files/ethiopia_vpd_2010_2025_025deg.nc --method linear --compression-level 0\nCompleted in 8.33s\nRunning clip step...\n$ C:\\Python313\\python.exe codes/clip_netcdf_by_shapefile.py --input data/merged_files/ethiopia_vpd_2010_2025_025deg.nc --boundary data/boundaries/ethiopia_adm0.geojson --output data/merged_files/ethiopia_vpd_2010_2025_025deg_clipped.nc --compression-level 0\nCompleted in 2.18s\n\nHistorical workflow completed successfully.",
+      "stderr_tail": "",
+      "error_message": "",
+      "fallback_used": false,
+      "fallback_path": ""
+    }
+  ],
+  "summary": {
+    "total_slices": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "duration_seconds": 691.2,
+    "failed_slices": [],
+    "output_files": [
+      "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_vpd_2010_2025_025deg_clipped.nc"
+    ],
+    "diagnostic_files": []
+  }
+}

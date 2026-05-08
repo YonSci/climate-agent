@@ -1,0 +1,75 @@
+{
+  "run_id": "run_20260506_210848",
+  "timestamp": "2026-05-06T21:08:48.333729+00:00",
+  "request": {
+    "countries": [
+      "eth"
+    ],
+    "variables": [
+      "rh"
+    ],
+    "scenario": "ssp245",
+    "period": [
+      2040,
+      2070
+    ],
+    "quality_level": "fast",
+    "diagnostics": true,
+    "workers": 1
+  },
+  "environment": {
+    "python_version": "3.13.3",
+    "xarray_version": "2026.4.0",
+    "numpy_version": "2.3.2",
+    "geopandas_version": "1.1.3",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "script_commit": "unknown"
+  },
+  "stages": [
+    {
+      "stage": "regrid",
+      "country": "eth",
+      "variable": "rh",
+      "scenario": "ssp245",
+      "command": "C:\\Python313\\python.exe D:\\IRLI\\climate-agent\\scripts\\run_projection_workflow.py --country ethiopia --scenario ssp_245 --variable rh --start-year 2040 --end-year 2070 --max-workers 1 --fast-mode --run-diagnostics",
+      "finished_at": "2026-05-06T21:09:03.482895+00:00",
+      "exit_code": 0,
+      "attempt": 1,
+      "status": "SUCCESS",
+      "input_files": [],
+      "output_file": "",
+      "validation": {
+        "ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc": {
+          "existence": "OK",
+          "variable_present": "OK",
+          "non_nan_coverage": "OK",
+          "time_coverage": "OK",
+          "daily_axis": "OK",
+          "units": "SKIP",
+          "grid_match": "SKIP",
+          "spatial_bounds": "SKIP"
+        }
+      },
+      "stdout_tail": "- Value min: 5.3271\n- Value max: 99.3214\n- Value mean: 57.6185\n- Diagnostic plot written to: data\\merged_files_et\\diagnostics\\ethiopia_rh_ssp245_2040_2070_025deg_clipped_diagnostic.png\n\n=== ethiopia ssp_245 rh ===\nRunning rename/regrid step...\n$ C:\\Python313\\python.exe codes/rename_and_regrid_netcdf.py --source data/projection_data/isimip-download-ethiopia/ssp_245/hurs --target-grid data/merged_files/ethiopia_pr_2010_2025.nc --output data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc --method linear --start-year 2040 --end-year 2070 --compression-level 0\nCompleted in 4.33s\nValidated rename/regrid output in 0.82s\nRunning clip step...\n$ C:\\Python313\\python.exe codes/clip_netcdf_by_shapefile.py --input data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg.nc --boundary data/boundaries/ethiopia_adm0.geojson --output data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc --compression-level 0\nCompleted in 2.13s\nValidated clipped output in 0.20s\nRunning diagnostics step...\n$ C:\\Python313\\python.exe codes/diagnose_final_netcdf.py --file data/merged_files/ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc --var rh --time-index 6416 --out-dir data/merged_files_et/diagnostics\nCompleted in 5.80s\nWorkflow slice completed in 13.40s\n\nWorkflow completed successfully.",
+      "stderr_tail": "",
+      "error_message": "",
+      "fallback_used": false,
+      "fallback_path": ""
+    }
+  ],
+  "summary": {
+    "total_slices": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "duration_seconds": 20.0,
+    "failed_slices": [],
+    "output_files": [
+      "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_rh_ssp245_2040_2070_025deg_clipped.nc"
+    ],
+    "diagnostic_files": [
+      "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260506_210848\\ethiopia_rh_ssp245_2040_2070_025deg_clipped_diagnostic.png"
+    ]
+  }
+}

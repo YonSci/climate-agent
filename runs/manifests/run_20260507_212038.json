@@ -1,0 +1,135 @@
+{
+  "run_id": "run_20260507_212038",
+  "timestamp": "2026-05-07T21:20:38.645605+00:00",
+  "request": {
+    "countries": [
+      "eth"
+    ],
+    "variables": [
+      "tas"
+    ],
+    "scenario": "historical",
+    "period": [
+      2010,
+      2025
+    ],
+    "quality_level": "strict",
+    "diagnostics": true,
+    "workers": 1,
+    "diagnostics_only": false
+  },
+  "environment": {
+    "python_version": "3.13.3",
+    "xarray_version": "2026.4.0",
+    "numpy_version": "2.3.2",
+    "geopandas_version": "1.1.3",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "script_commit": "4e4c82b",
+    "agent_config_hash": "sha256:cf198da6eef2f90b"
+  },
+  "stages": [
+    {
+      "stage": "merge",
+      "country": "eth",
+      "variable": "tas",
+      "scenario": "historical",
+      "command": "C:\\Python313\\python.exe D:\\IRLI\\climate-agent\\scripts\\run_historical_workflow.py --country ethiopia --variable temp --start-year 2010 --end-year 2025 --max-workers 1 --run-diagnostics --skip-merge",
+      "finished_at": "2026-05-07T21:20:55.398171+00:00",
+      "exit_code": 0,
+      "attempt": 1,
+      "status": "SUCCESS",
+      "input_files": [],
+      "output_file": "",
+      "validation": {
+        "ethiopia_temp_2010_2025_025deg_clipped.nc": {
+          "existence": "OK",
+          "variable_present": "OK",
+          "non_nan_coverage": "OK",
+          "time_coverage": "OK",
+          "daily_axis": "OK",
+          "units": "SKIP",
+          "grid_match": "OK",
+          "spatial_bounds": "OK",
+          "anomaly": "SKIP",
+          "distribution": "OK"
+        }
+      },
+      "stdout_tail": "- Value min: 3.7380\n- Value p05/p25/median/p75/p95: 14.4933 / 19.4721 / 23.4754 / 26.8846 / 31.2599\n- Value max: 40.7170\n- Value mean \u00b1 std: 23.1780 \u00b1 5.1701\n- Diagnostic plot written to: data\\merged_files_et\\diagnostics\\ethiopia_temp_2010_2025_025deg_clipped_diagnostic.png\n- QC JSON sidecar written to: data\\merged_files_et\\diagnostics\\ethiopia_temp_2010_2025_025deg_clipped_qc.json\n\n=== ethiopia historical temp ===\nSkipping merge step and reusing existing merged file...\nRunning rename/regrid step...\n$ C:\\Python313\\python.exe codes/rename_and_regrid_netcdf.py --source data/merged_files/ethiopia_temp_2010_2025.nc --target-grid data/merged_files/ethiopia_pr_2010_2025.nc --output data/merged_files/ethiopia_temp_2010_2025_025deg.nc --method linear --compression-level 0\nCompleted in 3.75s\nRunning clip step...\n$ C:\\Python313\\python.exe codes/clip_netcdf_by_shapefile.py --input data/merged_files/ethiopia_temp_2010_2025_025deg.nc --boundary data/boundaries/ethiopia_adm0.geojson --output data/merged_files/ethiopia_temp_2010_2025_025deg_clipped.nc --compression-level 1\nCompleted in 3.05s\nRunning diagnostics step...\n$ C:\\Python313\\python.exe codes/diagnose_final_netcdf.py --file data/merged_files/ethiopia_temp_2010_2025_025deg_clipped.nc --var t2m --time-index 0 --out-dir data/merged_files_et/diagnostics\nCompleted in 5.67s\n\nHistorical workflow completed successfully.",
+      "stderr_tail": "",
+      "error_message": "",
+      "fallback_used": false,
+      "fallback_path": ""
+    }
+  ],
+  "summary": {
+    "total_slices": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "duration_seconds": 20.4,
+    "failed_slices": [],
+    "output_files": [
+      "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_temp_2010_2025_025deg_clipped.nc"
+    ],
+    "diagnostic_files": [
+      "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260507_212038\\ethiopia_temp_2010_2025_025deg_clipped_diagnostic.png"
+    ],
+    "qc_stats": {
+      "ethiopia_temp_2010_2025_025deg_clipped.nc": {
+        "generated_at": "2026-05-07T21:20:58.614454+00:00",
+        "file_variable": "t2m",
+        "units": "\u00b0C",
+        "dims": {
+          "time": 5844,
+          "lat": 45,
+          "lon": 59
+        },
+        "grid": {
+          "lat_step_deg": 0.25,
+          "lon_step_deg": 0.25,
+          "lat_direction": "ascending",
+          "lon_direction": "ascending",
+          "lat_min": 3.625,
+          "lat_max": 14.625,
+          "lon_min": 33.125,
+          "lon_max": 47.625
+        },
+        "time": {
+          "n_timesteps": 5844,
+          "n_unique": 5844,
+          "duplicate_count": 0,
+          "missing_years": [],
+          "n_missing_years": 0
+        },
+        "coverage": {
+          "total_pixels": 15515820,
+          "finite_pixels": 8643276,
+          "nan_pixels": 6872544,
+          "finite_ratio": 0.5571
+        },
+        "value_stats": {
+          "min": 3.738,
+          "p01": 11.4096,
+          "p05": 14.4933,
+          "p25": 19.4721,
+          "median": 23.4754,
+          "p75": 26.8846,
+          "p95": 31.2599,
+          "p99": 34.8794,
+          "max": 40.717,
+          "mean": 23.178,
+          "std": 5.1701
+        },
+        "missing_fraction_by_timestep": {
+          "min": 0.4429,
+          "max": 0.4429,
+          "mean": 0.4429,
+          "n_timesteps_above_20pct": 5844,
+          "n_timesteps_above_50pct": 0
+        },
+        "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_temp_2010_2025_025deg_clipped.nc"
+      }
+    }
+  }
+}
