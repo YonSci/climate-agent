@@ -2,6 +2,8 @@
 
 > A command-line tool that turns a request like "give me daily 0.25° temperature and rainfall for Ethiopia and Kenya, 2010–2025" into validated, analysis-ready NetCDF files — downloading missing data, running the full processing pipeline, and writing a structured audit trail of every step.
 
+The agent solves the "data preparation" problem that sits between raw climate archives and your model. You say what you need — country, variable, scenario, year range. It figures out which source datasets to use (AgERA5 for historical observations, ISIMIP for projections, CHIRPS for rainfall), downloads anything that's missing, merges thousands of daily files into a single time series, regrids to a consistent 0.25° grid, clips to the country boundary, and checks the output for gaps, unit mismatches, and spatial problems. Every run produces a manifest you can share as provenance.
+
 Autonomous pipeline for acquiring, harmonizing, validating, and diagnosing climate datasets across East Africa — built for impact modelling at ILRI Climate Services.
 
 ---
