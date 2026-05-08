@@ -41,3 +41,4 @@ Thumbs.db
 # ── Temp files ────────────────────────────────────────────────
 *.tmp
 *.bak
+report.html
