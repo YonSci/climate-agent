@@ -1,5 +1,7 @@
 # Climate Data Harmonization Agent
 
+> A command-line tool that turns a request like "give me daily 0.25° temperature and rainfall for Ethiopia and Kenya, 2010–2025" into validated, analysis-ready NetCDF files — downloading missing data, running the full processing pipeline, and writing a structured audit trail of every step.
+
 Autonomous pipeline for acquiring, harmonizing, validating, and diagnosing climate datasets across East Africa — built for impact modelling at ILRI Climate Services.
 
 ---
