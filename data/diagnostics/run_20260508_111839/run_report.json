@@ -1,0 +1,19 @@
+{
+  "total_slices": 1,
+  "succeeded": 0,
+  "failed": 1,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 8958.1,
+  "failed_slices": [
+    {
+      "country": "eth,ken,som",
+      "variable": "pr,tas,rh,vpd",
+      "scenario": "historical",
+      "stage": "merge",
+      "reason": "Tool run_historical_workflow.py failed after 3 attempt(s). Last stderr: ess.CalledProcessError: Command '['D:\\\\IRLI\\\\climate-agent\\\\climate-agent-env\\\\Scripts\\\\python.exe', 'codes/merge_netcdf_ethiopia_temperature.py', '--input-dir', 'data/ethiopia_temperature/netcdf', '--output', 'data/merged_files/ethiopia_temp_2010_2025.nc']' returned non-zero exit status 3221226505."
+    }
+  ],
+  "output_files": [],
+  "diagnostic_files": []
+}

@@ -1,0 +1,122 @@
+{
+  "run_id": "run_20260508_141138",
+  "timestamp": "2026-05-08T14:11:38.151266+00:00",
+  "request": {
+    "countries": [
+      "ken"
+    ],
+    "variables": [
+      "pr"
+    ],
+    "scenario": "historical",
+    "period": [
+      2010,
+      2025
+    ],
+    "quality_level": "strict",
+    "diagnostics": true,
+    "workers": 1,
+    "diagnostics_only": false
+  },
+  "environment": {
+    "python_version": "3.13.3",
+    "xarray_version": "2026.4.0",
+    "numpy_version": "2.4.4",
+    "geopandas_version": "1.1.3",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "script_commit": "130e2bf",
+    "agent_config_hash": "sha256:cf198da6eef2f90b"
+  },
+  "stages": [
+    {
+      "stage": "merge",
+      "country": "ken",
+      "variable": "pr",
+      "scenario": "historical",
+      "command": "(skipped \u2014 outputs exist)",
+      "finished_at": "2026-05-08T14:11:38.247783+00:00",
+      "exit_code": 0,
+      "attempt": 1,
+      "status": "SKIPPED",
+      "input_files": [],
+      "output_file": "",
+      "validation": {},
+      "stdout_tail": "",
+      "stderr_tail": "",
+      "error_message": "",
+      "fallback_used": false,
+      "fallback_path": ""
+    }
+  ],
+  "summary": {
+    "total_slices": 1,
+    "succeeded": 0,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 1,
+    "duration_seconds": 3.4,
+    "failed_slices": [],
+    "output_files": [
+      "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_pr_2010_2025_025deg_clipped.nc"
+    ],
+    "diagnostic_files": [
+      "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260508_141138\\kenya_pr_2010_2025_025deg_clipped_diagnostic.png"
+    ],
+    "qc_stats": {
+      "kenya_pr_2010_2025_025deg_clipped.nc": {
+        "generated_at": "2026-05-08T14:11:41.337328+00:00",
+        "file_variable": "precip",
+        "units": "mm/day",
+        "dims": {
+          "time": 5844,
+          "lat": 39,
+          "lon": 31
+        },
+        "grid": {
+          "lat_step_deg": 0.25,
+          "lon_step_deg": 0.25,
+          "lat_direction": "ascending",
+          "lon_direction": "ascending",
+          "lat_min": -4.625,
+          "lat_max": 4.875,
+          "lon_min": 34.125,
+          "lon_max": 41.625
+        },
+        "time": {
+          "n_timesteps": 5844,
+          "n_unique": 5844,
+          "duplicate_count": 0,
+          "missing_years": [],
+          "n_missing_years": 0
+        },
+        "coverage": {
+          "total_pixels": 7065396,
+          "finite_pixels": 4458972,
+          "nan_pixels": 2606424,
+          "finite_ratio": 0.6311
+        },
+        "value_stats": {
+          "min": 0.0,
+          "p01": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 0.0,
+          "p95": 11.7318,
+          "p99": 30.4853,
+          "max": 367.1527,
+          "mean": 1.8459,
+          "std": 6.4147
+        },
+        "missing_fraction_by_timestep": {
+          "min": 0.3689,
+          "max": 0.3689,
+          "mean": 0.3689,
+          "n_timesteps_above_20pct": 5844,
+          "n_timesteps_above_50pct": 0
+        },
+        "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_pr_2010_2025_025deg_clipped.nc"
+      }
+    }
+  }
+}

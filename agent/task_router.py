@@ -198,16 +198,60 @@ class TaskRouter:
         if diag:
             args.append("--run-diagnostics")
 
-        # If merged intermediate files already exist for all non-pr variables,
-        # skip the expensive per-day merge step (5000+ files per variable).
         _merged_dir = _ROOT / "data" / "merged_files"
         _period_label = f"{period[0]}_{period[1]}"
         _needs_merge = [v for v in variables if v != "pr"]
-        if _needs_merge and all(
-            (_merged_dir / f"{SHORT_TO_LONG[c]}_{HIST_VAR_ALIAS[v]}_{_period_label}.nc").exists()
-            for c in countries for v in _needs_merge
-        ):
+
+        stages: list[Stage] = []
+
+        # For any country missing its merged CHIRPS pr file, add a chirps_merge
+        # pre-stage that calls merge_chirps_country.py, which reads yearly p25 files
+        # from data/{country}_chirips/ and writes the merged file to data/merged_files/.
+        if "pr" in variables:
+            for c in countries:
+                _pr_merged = _merged_dir / f"{SHORT_TO_LONG[c]}_pr_{_period_label}.nc"
+                if not _pr_merged.exists():
+                    stages.append(Stage(
+                        name=f"chirps_merge_{c}",
+                        script="merge_chirps_country.py",
+                        args=[
+                            "--country", SHORT_TO_LONG[c],
+                            "--start",   str(period[0]),
+                            "--end",     str(period[1]),
+                        ],
+                        expected_outputs=[],
+                    ))
+
+        # For any country × variable missing its AgERA5 merged file, add a fast
+        # pre-merge stage using open_mfdataset (lazy + chunked, ~200 MB RAM vs ~17 GB
+        # with the old xr.concat loop over 5000+ open datasets).
+        if _needs_merge:
+            for c in countries:
+                for v in _needs_merge:
+                    _alias = HIST_VAR_ALIAS[v]  # tas→temp, rh→rh, vpd→vpd
+                    _merged = _merged_dir / f"{SHORT_TO_LONG[c]}_{_alias}_{_period_label}.nc"
+                    if not _merged.exists():
+                        stages.append(Stage(
+                            name=f"agera5_merge_{c}_{v}",
+                            script="merge_agera5_fast.py",
+                            args=[
+                                "--country",  SHORT_TO_LONG[c],
+                                "--variable", _alias,
+                                "--start",    str(period[0]),
+                                "--end",      str(period[1]),
+                            ],
+                            expected_outputs=[],
+                        ))
+            # Pre-stages guarantee merged files exist before run_historical_workflow.py
+            # runs, so always bypass the slow per-day merge loop inside that script.
             args.append("--skip-merge")
+
+        stages.append(Stage(
+            name="merge",
+            script="run_historical_workflow.py",
+            args=args,
+            expected_outputs=historical_outputs(countries, variables, period),
+        ))
 
         return WorkflowPlan(
             run_type="historical",
@@ -215,12 +259,7 @@ class TaskRouter:
             scenario="historical", period=period,
             fast_mode=fast_mode, diagnostics=diag,
             workers=workers,
-            stages=[Stage(
-                name="merge",
-                script="run_historical_workflow.py",
-                args=args,
-                expected_outputs=historical_outputs(countries, variables, period),
-            )],
+            stages=stages,
         )
 
     def _projection(self, countries, variables, scenario, period,

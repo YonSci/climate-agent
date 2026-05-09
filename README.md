@@ -400,5 +400,5 @@ pytest tests/test_validation_engine.py -v   # single module
 
 ## Owner
 
-**ILRI Climate Services (Livestock, Climate and Environment)** — Yonas Mersha  
-Questions and data requests: [Y.Mersha@cgiar.org](mailto:Y.Mersha@cgiar.org)
+**ILRI Climate Services (Livestock, Climate and Environment)**: Yonas Mersha [Y.Mersha@cgiar.org](mailto:Y.Mersha@cgiar.org) & Dr Teferi Demissie []() 
+Questions and data requests: 

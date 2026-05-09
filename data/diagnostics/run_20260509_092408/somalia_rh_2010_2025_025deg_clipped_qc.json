@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-05-09T09:26:19.033674+00:00",
+  "file_variable": "rh",
+  "units": "%",
+  "dims": {
+    "time": 5844,
+    "lat": 54,
+    "lon": 41
+  },
+  "grid": {
+    "lat_step_deg": 0.25,
+    "lon_step_deg": 0.25,
+    "lat_direction": "ascending",
+    "lon_direction": "ascending",
+    "lat_min": -1.375,
+    "lat_max": 11.875,
+    "lon_min": 41.125,
+    "lon_max": 51.125
+  },
+  "time": {
+    "n_timesteps": 5844,
+    "n_unique": 5844,
+    "duplicate_count": 0,
+    "missing_years": [],
+    "n_missing_years": 0
+  },
+  "coverage": {
+    "total_pixels": 12938616,
+    "finite_pixels": 4827144,
+    "nan_pixels": 8111472,
+    "finite_ratio": 0.3731
+  },
+  "value_stats": {
+    "min": 5.4121,
+    "p01": 37.8776,
+    "p05": 49.8514,
+    "p25": 72.3568,
+    "median": 82.4859,
+    "p75": 88.1575,
+    "p95": 94.3362,
+    "p99": 97.3183,
+    "max": 100.0,
+    "mean": 78.6175,
+    "std": 13.5768
+  },
+  "missing_fraction_by_timestep": {
+    "min": 0.6269,
+    "max": 0.6269,
+    "mean": 0.6269,
+    "n_timesteps_above_20pct": 5844,
+    "n_timesteps_above_50pct": 5844
+  },
+  "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\somalia_rh_2010_2025_025deg_clipped.nc"
+}

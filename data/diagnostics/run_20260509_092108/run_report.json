@@ -1,0 +1,71 @@
+{
+  "total_slices": 1,
+  "succeeded": 1,
+  "failed": 0,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 49.5,
+  "failed_slices": [],
+  "output_files": [
+    "D:\\IRLI\\climate-agent\\data\\merged_files\\somalia_pr_2010_2025_025deg_clipped.nc"
+  ],
+  "diagnostic_files": [
+    "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260509_092108\\somalia_pr_2010_2025_025deg_clipped_diagnostic.png"
+  ],
+  "qc_stats": {
+    "somalia_pr_2010_2025_025deg_clipped.nc": {
+      "generated_at": "2026-05-09T09:21:57.827962+00:00",
+      "file_variable": "precip",
+      "units": "mm/day",
+      "dims": {
+        "time": 5844,
+        "lat": 54,
+        "lon": 41
+      },
+      "grid": {
+        "lat_step_deg": 0.25,
+        "lon_step_deg": 0.25,
+        "lat_direction": "ascending",
+        "lon_direction": "ascending",
+        "lat_min": -1.375,
+        "lat_max": 11.875,
+        "lon_min": 41.125,
+        "lon_max": 51.125
+      },
+      "time": {
+        "n_timesteps": 5844,
+        "n_unique": 5844,
+        "duplicate_count": 0,
+        "missing_years": [],
+        "n_missing_years": 0
+      },
+      "coverage": {
+        "total_pixels": 12938616,
+        "finite_pixels": 4827144,
+        "nan_pixels": 8111472,
+        "finite_ratio": 0.3731
+      },
+      "value_stats": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "p25": 0.0,
+        "median": 0.0,
+        "p75": 0.0,
+        "p95": 5.3833,
+        "p99": 17.197,
+        "max": 189.0288,
+        "mean": 0.8171,
+        "std": 3.4869
+      },
+      "missing_fraction_by_timestep": {
+        "min": 0.6269,
+        "max": 0.6269,
+        "mean": 0.6269,
+        "n_timesteps_above_20pct": 5844,
+        "n_timesteps_above_50pct": 5844
+      },
+      "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\somalia_pr_2010_2025_025deg_clipped.nc"
+    }
+  }
+}

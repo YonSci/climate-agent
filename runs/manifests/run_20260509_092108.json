@@ -1,0 +1,135 @@
+{
+  "run_id": "run_20260509_092108",
+  "timestamp": "2026-05-09T09:21:09.072258+00:00",
+  "request": {
+    "countries": [
+      "som"
+    ],
+    "variables": [
+      "pr"
+    ],
+    "scenario": "historical",
+    "period": [
+      2010,
+      2025
+    ],
+    "quality_level": "strict",
+    "diagnostics": true,
+    "workers": 1,
+    "diagnostics_only": false
+  },
+  "environment": {
+    "python_version": "3.13.3",
+    "xarray_version": "2026.4.0",
+    "numpy_version": "2.4.4",
+    "geopandas_version": "1.1.3",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "script_commit": "130e2bf",
+    "agent_config_hash": "sha256:cf198da6eef2f90b"
+  },
+  "stages": [
+    {
+      "stage": "merge",
+      "country": "som",
+      "variable": "pr",
+      "scenario": "historical",
+      "command": "D:\\IRLI\\climate-agent\\climate-agent-env\\Scripts\\python.exe D:\\IRLI\\climate-agent\\scripts\\run_historical_workflow.py --country somalia --variable pr --start-year 2010 --end-year 2025 --max-workers 1 --run-diagnostics",
+      "finished_at": "2026-05-09T09:21:48.468084+00:00",
+      "exit_code": 0,
+      "attempt": 1,
+      "status": "SUCCESS",
+      "input_files": [],
+      "output_file": "",
+      "validation": {
+        "somalia_pr_2010_2025_025deg_clipped.nc": {
+          "existence": "OK",
+          "variable_present": "OK",
+          "non_nan_coverage": "OK",
+          "time_coverage": "OK",
+          "daily_axis": "OK",
+          "units": "OK",
+          "grid_match": "SKIP",
+          "spatial_bounds": "SKIP",
+          "anomaly": "OK",
+          "distribution": "OK"
+        }
+      },
+      "stdout_tail": "- Longitude step: 0.25 (ascending)\n- Time length: 5844\n- Duplicate time values: 0\n- Finite ratio: 0.3731\n- Value min: 0.0000\n- Value p05/p25/median/p75/p95: 0.0000 / 0.0000 / 0.0000 / 0.0000 / 5.3833\n- Value max: 189.0288\n- Value mean \u00b1 std: 0.8171 \u00b1 3.4869\n- Diagnostic plot written to: data\\merged_files_so\\diagnostics\\somalia_pr_2010_2025_025deg_clipped_diagnostic.png\n- QC JSON sidecar written to: data\\merged_files_so\\diagnostics\\somalia_pr_2010_2025_025deg_clipped_qc.json\n\n=== somalia historical pr ===\nRunning clip step...\n$ D:\\IRLI\\climate-agent\\climate-agent-env\\Scripts\\python.exe codes/clip_netcdf_by_shapefile.py --input data/merged_files/somalia_pr_2010_2025.nc --boundary data/boundaries/somalia_adm0.geojson --output data/merged_files/somalia_pr_2010_2025_025deg_clipped.nc --compression-level 1\nCompleted in 12.79s\nRunning diagnostics step...\n$ D:\\IRLI\\climate-agent\\climate-agent-env\\Scripts\\python.exe codes/diagnose_final_netcdf.py --file data/merged_files/somalia_pr_2010_2025_025deg_clipped.nc --var precip --time-index 0 --out-dir data/merged_files_so/diagnostics\nCompleted in 14.32s\n\nHistorical workflow completed successfully.",
+      "stderr_tail": "",
+      "error_message": "",
+      "fallback_used": false,
+      "fallback_path": ""
+    }
+  ],
+  "summary": {
+    "total_slices": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "duration_seconds": 49.5,
+    "failed_slices": [],
+    "output_files": [
+      "D:\\IRLI\\climate-agent\\data\\merged_files\\somalia_pr_2010_2025_025deg_clipped.nc"
+    ],
+    "diagnostic_files": [
+      "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260509_092108\\somalia_pr_2010_2025_025deg_clipped_diagnostic.png"
+    ],
+    "qc_stats": {
+      "somalia_pr_2010_2025_025deg_clipped.nc": {
+        "generated_at": "2026-05-09T09:21:57.827962+00:00",
+        "file_variable": "precip",
+        "units": "mm/day",
+        "dims": {
+          "time": 5844,
+          "lat": 54,
+          "lon": 41
+        },
+        "grid": {
+          "lat_step_deg": 0.25,
+          "lon_step_deg": 0.25,
+          "lat_direction": "ascending",
+          "lon_direction": "ascending",
+          "lat_min": -1.375,
+          "lat_max": 11.875,
+          "lon_min": 41.125,
+          "lon_max": 51.125
+        },
+        "time": {
+          "n_timesteps": 5844,
+          "n_unique": 5844,
+          "duplicate_count": 0,
+          "missing_years": [],
+          "n_missing_years": 0
+        },
+        "coverage": {
+          "total_pixels": 12938616,
+          "finite_pixels": 4827144,
+          "nan_pixels": 8111472,
+          "finite_ratio": 0.3731
+        },
+        "value_stats": {
+          "min": 0.0,
+          "p01": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 0.0,
+          "p95": 5.3833,
+          "p99": 17.197,
+          "max": 189.0288,
+          "mean": 0.8171,
+          "std": 3.4869
+        },
+        "missing_fraction_by_timestep": {
+          "min": 0.6269,
+          "max": 0.6269,
+          "mean": 0.6269,
+          "n_timesteps_above_20pct": 5844,
+          "n_timesteps_above_50pct": 5844
+        },
+        "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\somalia_pr_2010_2025_025deg_clipped.nc"
+      }
+    }
+  }
+}

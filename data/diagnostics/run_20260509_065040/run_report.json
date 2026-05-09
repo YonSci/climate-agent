@@ -1,0 +1,19 @@
+{
+  "total_slices": 2,
+  "succeeded": 1,
+  "failed": 1,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 1725.8,
+  "failed_slices": [
+    {
+      "country": "ken",
+      "variable": "tas",
+      "scenario": "historical",
+      "stage": "merge",
+      "reason": "Tool run_historical_workflow.py failed after 3 attempt(s). Last stderr: elf._args, **kwargs)\n  File \"src/netCDF4/_netCDF4.pyx\", line 2521, in netCDF4._netCDF4.Dataset.__init__\n  File \"src/netCDF4/_netCDF4.pyx\", line 2158, in netCDF4._netCDF4._ensure_nc_success\nOSError: [Errno -101] NetCDF: HDF error: 'D:\\\\IRLI\\\\climate-agent\\\\data\\\\merged_files\\\\kenya_temp_2010_2025.nc'"
+    }
+  ],
+  "output_files": [],
+  "diagnostic_files": []
+}
