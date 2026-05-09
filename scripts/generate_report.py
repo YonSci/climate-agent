@@ -625,8 +625,8 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
 /* Header layout */
 .header-inner { display: flex; align-items: center; gap: 24px; }
 .header-logo { flex-shrink: 0; }
-.header-logo img { filter: brightness(0) invert(1); height: 72px; width: auto; }
-.footer-brand img { filter: brightness(0) invert(1); height: 56px; width: auto; align-self: flex-start; }
+.header-logo img { filter: brightness(0) invert(1); height: 142px; width: auto; }
+.footer-brand img { filter: brightness(0) invert(1); height: 142px; width: auto; align-self: flex-start; }
 .header-text h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
 .header-text .subtitle { font-size: 13px; opacity: 0.8; margin-top: 4px; }
 .header-text .generated { font-size: 11px; opacity: 0.6; margin-top: 8px; }
