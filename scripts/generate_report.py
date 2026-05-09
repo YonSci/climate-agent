@@ -409,6 +409,40 @@ function filterRuns() {
   });
 }
 
+// ── Dark mode ────────────────────────────────────────────────────────────────
+function toggleDark() {
+  var html = document.documentElement;
+  var dark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.querySelector('.dark-toggle').textContent = dark ? '🌙' : '☀️';
+  try { localStorage.setItem('theme', dark ? 'light' : 'dark'); } catch(e) {}
+}
+(function() {
+  try {
+    var t = localStorage.getItem('theme');
+    if (t === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.querySelector('.dark-toggle');
+        if (btn) btn.textContent = '☀️';
+      });
+    }
+  } catch(e) {}
+})();
+
+// ── Keyboard shortcut: / focuses search ──────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    var s = document.getElementById('inv-search');
+    if (s) { s.focus(); s.select(); }
+  }
+  if (e.key === 'Escape') {
+    var s = document.getElementById('inv-search');
+    if (s && document.activeElement === s) { s.value = ''; filterInventory(); s.blur(); }
+  }
+});
+
 // ── Init count ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   filterInventory();
@@ -578,7 +612,164 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
 .error-block { background: #fff1f2; border-left: 3px solid #ef4444;
                padding: 8px 12px; font-size: 12px; color: #7f1d1d;
                border-radius: 0 6px 6px 0; margin: 8px 0; }
+
+/* Navigation */
+.top-nav { background: #fff; border-bottom: 1px solid #e5e7eb;
+           padding: 0 24px; display: flex; gap: 0; position: sticky;
+           top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.top-nav a { display: inline-block; padding: 12px 16px; font-size: 13px;
+             font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent;
+             transition: all .15s; text-decoration: none; }
+.top-nav a:hover { color: #2563eb; border-bottom-color: #2563eb; }
+
+/* Header layout */
+.header-inner { display: flex; align-items: center; gap: 24px; }
+.header-logo { flex-shrink: 0; }
+.header-text h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+.header-text .subtitle { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+.header-text .generated { font-size: 11px; opacity: 0.6; margin-top: 8px; }
+
+/* About section */
+.about-grid { display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+              gap: 14px; }
+.about-card { background: #fff; border-radius: 10px; padding: 18px 20px;
+              box-shadow: 0 1px 4px rgba(0,0,0,.08);
+              border-top: 3px solid #2563eb; }
+.about-icon { font-size: 22px; margin-bottom: 8px; }
+.about-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 6px; }
+.about-body { font-size: 12px; color: #6b7280; line-height: 1.6; }
+
+/* Dark mode toggle */
+.dark-toggle { position: fixed; bottom: 24px; right: 24px; z-index: 200;
+               width: 42px; height: 42px; border-radius: 50%;
+               border: 1px solid #e5e7eb; background: #fff;
+               font-size: 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.12);
+               display: flex; align-items: center; justify-content: center;
+               transition: all .2s; }
+.dark-toggle:hover { transform: scale(1.1); }
+
+/* Footer */
+.page-footer { background: #1e3a5f; color: #fff; margin-top: 48px;
+               padding: 40px 24px 28px; }
+.footer-inner { max-width: 1200px; margin: 0 auto;
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                gap: 40px; align-items: start; }
+.footer-brand { display: flex; flex-direction: column; gap: 12px; }
+.footer-tagline { font-size: 11px; opacity: 0.6; line-height: 1.6;
+                  max-width: 160px; margin-top: 4px; }
+.footer-section-label { font-size: 10px; text-transform: uppercase;
+                        letter-spacing: .8px; opacity: 0.5; margin-bottom: 12px; }
+.contact-row { display: flex; flex-direction: column; gap: 12px; }
+.contact-card { display: flex; align-items: center; gap: 12px; }
+.contact-avatar { width: 36px; height: 36px; border-radius: 50%;
+                  background: rgba(255,255,255,.15); display: flex;
+                  align-items: center; justify-content: center;
+                  font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.contact-name { font-size: 13px; font-weight: 600; }
+.contact-title { font-size: 11px; opacity: 0.65; margin: 1px 0; }
+.contact-email { font-size: 11px; color: #93c5fd; text-decoration: none; }
+.contact-email:hover { text-decoration: underline; }
+.footer-meta { font-size: 12px; opacity: 0.75; }
+.footer-meta-item { margin-bottom: 6px; }
+.footer-meta a { color: #93c5fd; }
+
+/* Dark mode */
+[data-theme="dark"] { background: #0f172a; color: #e2e8f0; }
+[data-theme="dark"] .top-nav { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .top-nav a { color: #94a3b8; }
+[data-theme="dark"] .top-nav a:hover { color: #60a5fa; border-color: #60a5fa; }
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .run-card,
+[data-theme="dark"] .inv-table,
+[data-theme="dark"] .about-card { background: #1e293b; box-shadow: none;
+                                   border-color: #334155; }
+[data-theme="dark"] .inv-table th { background: #0f172a; color: #64748b;
+                                     border-color: #334155; }
+[data-theme="dark"] .inv-table td { border-color: #1e293b; }
+[data-theme="dark"] .inv-table tbody tr:hover td { background: #0f172a; }
+[data-theme="dark"] .run-card > summary:hover,
+[data-theme="dark"] .stage-detail > summary { background: #0f172a; }
+[data-theme="dark"] .stage-detail { border-color: #334155; }
+[data-theme="dark"] .run-body { border-color: #334155; }
+[data-theme="dark"] h2 { color: #e2e8f0; border-color: #334155; }
+[data-theme="dark"] .qc-card { background: #0f172a; border-color: #334155; }
+[data-theme="dark"] .filter-btn,
+[data-theme="dark"] .export-btn,
+[data-theme="dark"] .ctrl-btn { background: #1e293b; border-color: #334155;
+                                  color: #94a3b8; }
+[data-theme="dark"] .filter-btn.active { background: #2563eb; color: #fff; }
+[data-theme="dark"] #inv-search { background: #1e293b; border-color: #334155;
+                                   color: #e2e8f0; }
+[data-theme="dark"] .dark-toggle { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .run-toolbar select { background: #1e293b; border-color: #334155;
+                                          color: #94a3b8; }
+[data-theme="dark"] .about-body { color: #94a3b8; }
+[data-theme="dark"] a { color: #60a5fa; }
+
+/* Print */
+@media print {
+  .dark-toggle, .top-nav, .table-toolbar, .run-toolbar,
+  .filter-btn, .export-btn, .ctrl-btn { display: none !important; }
+  body { background: #fff; font-size: 12px; }
+  .page-header { background: #005899 !important; -webkit-print-color-adjust: exact; }
+  .run-card, .stage-detail { box-shadow: none; border: 1px solid #e5e7eb; }
+  .content { max-width: 100%; padding: 16px; }
+  details { display: block !important; }
+  details > summary { display: none; }
+  .plots img { max-width: 100%; page-break-inside: avoid; }
+  .page-footer { background: #1e3a5f !important; -webkit-print-color-adjust: exact; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header { padding: 20px; }
+  .header-inner { flex-direction: column; gap: 16px; }
+  .footer-inner { grid-template-columns: 1fr; gap: 28px; }
+  .content { padding: 16px; }
+  .top-nav { overflow-x: auto; }
+  .stat-row { gap: 10px; }
+  .stat-card { min-width: 100px; padding: 12px 16px; }
+}
 """
+
+
+# ── ILRI Logo (inline SVG — no external dependency) ──────────────────────────
+
+_ILRI_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 48" height="48" role="img" aria-label="ILRI logo">
+  <rect width="68" height="48" rx="3" fill="#005899"/>
+  <text x="34" y="34" font-family="Arial,Helvetica,sans-serif" font-weight="900"
+        font-size="26" fill="#ffffff" text-anchor="middle" letter-spacing="1">ILRI</text>
+  <text x="76" y="17" font-family="Arial,Helvetica,sans-serif" font-size="9.5"
+        fill="#ffffff" opacity="0.9">International Livestock</text>
+  <text x="76" y="29" font-family="Arial,Helvetica,sans-serif" font-size="9.5"
+        fill="#ffffff" opacity="0.9">Research Institute</text>
+  <text x="76" y="42" font-family="Arial,Helvetica,sans-serif" font-size="8"
+        fill="#ffffff" opacity="0.6">A CGIAR Research Center</text>
+</svg>"""
+
+# ── Contacts ──────────────────────────────────────────────────────────────────
+
+_CONTACTS = [
+    {"name": "Yonas Mersha",       "title": "Climate Data Scientist", "email": "Y.Mersha@cgiar.org"},
+    {"name": "Dr Teferi Demissie", "title": "Senior Scientist",       "email": "t.demissie@cgiar.org"},
+]
+
+
+def _render_contacts() -> str:
+    cards = []
+    for c in _CONTACTS:
+        cards.append(f"""
+        <div class='contact-card'>
+          <div class='contact-avatar'>{c['name'][0]}</div>
+          <div class='contact-info'>
+            <div class='contact-name'>{c['name']}</div>
+            <div class='contact-title'>{c['title']}</div>
+            <a class='contact-email' href='mailto:{c['email']}'>{c['email']}</a>
+          </div>
+        </div>""")
+    return "".join(cards)
 
 
 # ── Full page assembly ────────────────────────────────────────────────────────
@@ -622,30 +813,102 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
 
     runs_html = "\n".join(_render_run(m) for m in manifests)
 
+    nav = """
+    <nav class='top-nav' aria-label='Page sections'>
+      <a href='#sec-about'>About</a>
+      <a href='#sec-inventory'>Inventory</a>
+      <a href='#sec-runs'>Run History</a>
+      <a href='#sec-contacts'>Contacts</a>
+    </nav>"""
+
+    about_section = """
+    <section id='sec-about'>
+      <h2>About This System</h2>
+      <div class='about-grid'>
+        <div class='about-card'>
+          <div class='about-icon'>🌍</div>
+          <div class='about-title'>Coverage</div>
+          <div class='about-body'>Ethiopia, Kenya and Somalia — East Africa's most climate-vulnerable pastoralist zones.</div>
+        </div>
+        <div class='about-card'>
+          <div class='about-icon'>📊</div>
+          <div class='about-title'>Variables</div>
+          <div class='about-body'>Daily temperature (tas), relative humidity (rh), vapour pressure deficit (vpd) and precipitation (pr) at 0.25° resolution.</div>
+        </div>
+        <div class='about-card'>
+          <div class='about-icon'>🔄</div>
+          <div class='about-title'>Sources</div>
+          <div class='about-body'>AgERA5 reanalysis (historical), CHIRPS v2 (precipitation), ISIMIP3b projections (SSP2-4.5 · SSP5-8.5).</div>
+        </div>
+        <div class='about-card'>
+          <div class='about-icon'>✅</div>
+          <div class='about-title'>Quality</div>
+          <div class='about-body'>Every output validated for time coverage, grid consistency, unit correctness and spatial bounds before delivery.</div>
+        </div>
+      </div>
+    </section>"""
+
+    footer = f"""
+  <footer class='page-footer' id='sec-contacts'>
+    <div class='footer-inner'>
+      <div class='footer-brand'>
+        {_ILRI_LOGO_SVG}
+        <div class='footer-tagline'>Livestock research for food security<br>and poverty reduction</div>
+      </div>
+      <div class='footer-contacts'>
+        <div class='footer-section-label'>Project Contacts</div>
+        <div class='contact-row'>{_render_contacts()}</div>
+      </div>
+      <div class='footer-meta'>
+        <div class='footer-section-label'>Report</div>
+        <div class='footer-meta-item'>Generated {generated_at}</div>
+        <div class='footer-meta-item'>
+          <a href='https://www.ilri.org' target='_blank' rel='noopener'>www.ilri.org</a>
+        </div>
+        <div class='footer-meta-item muted' style='margin-top:8px;font-size:10px;'>
+          © ILRI / CGIAR. Data for research use only.
+        </div>
+      </div>
+    </div>
+  </footer>"""
+
+    dark_toggle = """<button class='dark-toggle' onclick='toggleDark()' title='Toggle dark mode' aria-label='Toggle dark mode'>🌙</button>"""
+
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Climate Agent — Run Report</title>
+  <title>Climate Agent — Run Report · ILRI</title>
   <style>{_CSS}</style>
 </head>
 <body>
+  {dark_toggle}
+
   <header class='page-header'>
-    <h1>AI Climate Data Harmonization Agent</h1>
-    <div class='subtitle'>ILRI Livestock, Climate and Environment Services</div>
-    <div class='generated'>Generated {generated_at}</div>
+    <div class='header-inner'>
+      <div class='header-logo'>{_ILRI_LOGO_SVG}</div>
+      <div class='header-text'>
+        <h1>AI Climate Data Harmonization Agent</h1>
+        <div class='subtitle'>ILRI Livestock, Climate and Environment Services · East Africa</div>
+        <div class='generated'>Generated {generated_at}</div>
+      </div>
+    </div>
   </header>
+
+  {nav}
 
   <div class='content'>
     {stat_cards}
 
-    <section>
+    {about_section}
+
+    <section id='sec-inventory'>
       <h2>Data Inventory</h2>
       {_render_inventory(inventory)}
     </section>
 
-    <section>
+    <section id='sec-runs'>
       <h2>Run History</h2>
       {run_toolbar}
       <div id='run-history'>
@@ -654,6 +917,7 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
     </section>
   </div>
 
+  {footer}
   <script>{_JS}</script>
 </body>
 </html>"""
