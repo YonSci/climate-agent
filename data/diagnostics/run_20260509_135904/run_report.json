@@ -1,0 +1,239 @@
+{
+  "total_slices": 2,
+  "succeeded": 2,
+  "failed": 0,
+  "warnings": 0,
+  "skipped": 0,
+  "duration_seconds": 82.3,
+  "failed_slices": [],
+  "output_files": [
+    "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_pr_ssp245_2040_2070_025deg_clipped.nc",
+    "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_rh_ssp245_2040_2070_025deg_clipped.nc",
+    "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_tas_ssp245_2040_2070_025deg_clipped.nc",
+    "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_vpd_ssp245_2040_2070_025deg_clipped.nc"
+  ],
+  "diagnostic_files": [
+    "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260509_135904\\kenya_pr_ssp245_2040_2070_025deg_clipped_diagnostic.png",
+    "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260509_135904\\kenya_rh_ssp245_2040_2070_025deg_clipped_diagnostic.png",
+    "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260509_135904\\kenya_tas_ssp245_2040_2070_025deg_clipped_diagnostic.png",
+    "D:\\IRLI\\climate-agent\\data\\diagnostics\\run_20260509_135904\\kenya_vpd_ssp245_2040_2070_025deg_clipped_diagnostic.png"
+  ],
+  "qc_stats": {
+    "kenya_pr_ssp245_2040_2070_025deg_clipped.nc": {
+      "generated_at": "2026-05-09T13:59:52.482175+00:00",
+      "file_variable": "pr",
+      "units": "mm/day",
+      "dims": {
+        "time": 11323,
+        "lat": 39,
+        "lon": 31
+      },
+      "grid": {
+        "lat_step_deg": 0.25,
+        "lon_step_deg": 0.25,
+        "lat_direction": "ascending",
+        "lon_direction": "ascending",
+        "lat_min": -4.625,
+        "lat_max": 4.875,
+        "lon_min": 34.125,
+        "lon_max": 41.625
+      },
+      "time": {
+        "n_timesteps": 11323,
+        "n_unique": 11323,
+        "duplicate_count": 0,
+        "missing_years": [],
+        "n_missing_years": 0
+      },
+      "coverage": {
+        "total_pixels": 13689507,
+        "finite_pixels": 8458281,
+        "nan_pixels": 5231226,
+        "finite_ratio": 0.6179
+      },
+      "value_stats": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "p25": 0.0,
+        "median": 0.0,
+        "p75": 0.8597,
+        "p95": 9.2891,
+        "p99": 22.8176,
+        "max": 202.3472,
+        "mean": 1.6682,
+        "std": 4.7783
+      },
+      "missing_fraction_by_timestep": {
+        "min": 0.3821,
+        "max": 0.3821,
+        "mean": 0.3821,
+        "n_timesteps_above_20pct": 11323,
+        "n_timesteps_above_50pct": 0
+      },
+      "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_pr_ssp245_2040_2070_025deg_clipped.nc"
+    },
+    "kenya_rh_ssp245_2040_2070_025deg_clipped.nc": {
+      "generated_at": "2026-05-09T13:59:58.551132+00:00",
+      "file_variable": "rh",
+      "units": "%",
+      "dims": {
+        "time": 11323,
+        "lat": 39,
+        "lon": 31
+      },
+      "grid": {
+        "lat_step_deg": 0.25,
+        "lon_step_deg": 0.25,
+        "lat_direction": "ascending",
+        "lon_direction": "ascending",
+        "lat_min": -4.625,
+        "lat_max": 4.875,
+        "lon_min": 34.125,
+        "lon_max": 41.625
+      },
+      "time": {
+        "n_timesteps": 11323,
+        "n_unique": 11323,
+        "duplicate_count": 0,
+        "missing_years": [],
+        "n_missing_years": 0
+      },
+      "coverage": {
+        "total_pixels": 13689507,
+        "finite_pixels": 8458281,
+        "nan_pixels": 5231226,
+        "finite_ratio": 0.6179
+      },
+      "value_stats": {
+        "min": 9.0199,
+        "p01": 31.7996,
+        "p05": 39.9706,
+        "p25": 51.523,
+        "median": 61.1055,
+        "p75": 71.3505,
+        "p95": 82.257,
+        "p99": 87.0656,
+        "max": 99.0484,
+        "mean": 61.2257,
+        "std": 13.109
+      },
+      "missing_fraction_by_timestep": {
+        "min": 0.3821,
+        "max": 0.3821,
+        "mean": 0.3821,
+        "n_timesteps_above_20pct": 11323,
+        "n_timesteps_above_50pct": 0
+      },
+      "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_rh_ssp245_2040_2070_025deg_clipped.nc"
+    },
+    "kenya_tas_ssp245_2040_2070_025deg_clipped.nc": {
+      "generated_at": "2026-05-09T14:00:04.632311+00:00",
+      "file_variable": "tas",
+      "units": "degC",
+      "dims": {
+        "time": 11323,
+        "lat": 39,
+        "lon": 31
+      },
+      "grid": {
+        "lat_step_deg": 0.25,
+        "lon_step_deg": 0.25,
+        "lat_direction": "ascending",
+        "lon_direction": "ascending",
+        "lat_min": -4.625,
+        "lat_max": 4.875,
+        "lon_min": 34.125,
+        "lon_max": 41.625
+      },
+      "time": {
+        "n_timesteps": 11323,
+        "n_unique": 11323,
+        "duplicate_count": 0,
+        "missing_years": [],
+        "n_missing_years": 0
+      },
+      "coverage": {
+        "total_pixels": 13689507,
+        "finite_pixels": 8458281,
+        "nan_pixels": 5231226,
+        "finite_ratio": 0.6179
+      },
+      "value_stats": {
+        "min": 10.9518,
+        "p01": 16.1409,
+        "p05": 18.6633,
+        "p25": 23.9223,
+        "median": 27.1651,
+        "p75": 29.1741,
+        "p95": 31.3182,
+        "p99": 32.3304,
+        "max": 35.1729,
+        "mean": 26.2802,
+        "std": 3.8766
+      },
+      "missing_fraction_by_timestep": {
+        "min": 0.3821,
+        "max": 0.3821,
+        "mean": 0.3821,
+        "n_timesteps_above_20pct": 11323,
+        "n_timesteps_above_50pct": 0
+      },
+      "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_tas_ssp245_2040_2070_025deg_clipped.nc"
+    },
+    "kenya_vpd_ssp245_2040_2070_025deg_clipped.nc": {
+      "generated_at": "2026-05-09T14:00:26.221964+00:00",
+      "file_variable": "vpd",
+      "units": "hPa",
+      "dims": {
+        "time": 11323,
+        "lat": 39,
+        "lon": 31
+      },
+      "grid": {
+        "lat_step_deg": 0.25,
+        "lon_step_deg": 0.25,
+        "lat_direction": "ascending",
+        "lon_direction": "ascending",
+        "lat_min": -4.625,
+        "lat_max": 4.875,
+        "lon_min": 34.125,
+        "lon_max": 41.625
+      },
+      "time": {
+        "n_timesteps": 11323,
+        "n_unique": 11323,
+        "duplicate_count": 0,
+        "missing_years": [],
+        "n_missing_years": 0
+      },
+      "coverage": {
+        "total_pixels": 13689507,
+        "finite_pixels": 8458281,
+        "nan_pixels": 5231226,
+        "finite_ratio": 0.6179
+      },
+      "value_stats": {
+        "min": 0.1645,
+        "p01": 2.9084,
+        "p05": 4.5324,
+        "p25": 8.8494,
+        "median": 13.499,
+        "p75": 18.6372,
+        "p95": 25.1832,
+        "p99": 29.4207,
+        "max": 41.3676,
+        "mean": 14.0058,
+        "std": 6.4295
+      },
+      "missing_fraction_by_timestep": {
+        "min": 0.3821,
+        "max": 0.3821,
+        "mean": 0.3821,
+        "n_timesteps_above_20pct": 11323,
+        "n_timesteps_above_50pct": 0
+      },
+      "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\kenya_vpd_ssp245_2040_2070_025deg_clipped.nc"
+    }
+  }
+}

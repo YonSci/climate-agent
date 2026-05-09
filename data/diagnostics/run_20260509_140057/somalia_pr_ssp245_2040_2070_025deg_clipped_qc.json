@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-05-09T14:01:51.600767+00:00",
+  "file_variable": "pr",
+  "units": "mm/day",
+  "dims": {
+    "time": 11323,
+    "lat": 54,
+    "lon": 41
+  },
+  "grid": {
+    "lat_step_deg": 0.25,
+    "lon_step_deg": 0.25,
+    "lat_direction": "ascending",
+    "lon_direction": "ascending",
+    "lat_min": -1.375,
+    "lat_max": 11.875,
+    "lon_min": 41.125,
+    "lon_max": 51.125
+  },
+  "time": {
+    "n_timesteps": 11323,
+    "n_unique": 11323,
+    "duplicate_count": 0,
+    "missing_years": [],
+    "n_missing_years": 0
+  },
+  "coverage": {
+    "total_pixels": 25069122,
+    "finite_pixels": 9137661,
+    "nan_pixels": 15931461,
+    "finite_ratio": 0.3645
+  },
+  "value_stats": {
+    "min": 0.0,
+    "p01": 0.0,
+    "p05": 0.0,
+    "p25": 0.0,
+    "median": 0.0,
+    "p75": 0.0491,
+    "p95": 3.8159,
+    "p99": 16.716,
+    "max": 280.5728,
+    "mean": 0.7795,
+    "std": 3.7549
+  },
+  "missing_fraction_by_timestep": {
+    "min": 0.6355,
+    "max": 0.6355,
+    "mean": 0.6355,
+    "n_timesteps_above_20pct": 11323,
+    "n_timesteps_above_50pct": 11323
+  },
+  "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\somalia_pr_ssp245_2040_2070_025deg_clipped.nc"
+}

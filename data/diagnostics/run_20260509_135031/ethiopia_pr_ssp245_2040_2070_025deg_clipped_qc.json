@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-05-09T13:51:04.536590+00:00",
+  "file_variable": "pr",
+  "units": "mm/day",
+  "dims": {
+    "time": 11323,
+    "lat": 45,
+    "lon": 59
+  },
+  "grid": {
+    "lat_step_deg": 0.25,
+    "lon_step_deg": 0.25,
+    "lat_direction": "ascending",
+    "lon_direction": "ascending",
+    "lat_min": 3.625,
+    "lat_max": 14.625,
+    "lon_min": 33.125,
+    "lon_max": 47.625
+  },
+  "time": {
+    "n_timesteps": 11323,
+    "n_unique": 11323,
+    "duplicate_count": 0,
+    "missing_years": [],
+    "n_missing_years": 0
+  },
+  "coverage": {
+    "total_pixels": 30062565,
+    "finite_pixels": 16735394,
+    "nan_pixels": 13327171,
+    "finite_ratio": 0.5567
+  },
+  "value_stats": {
+    "min": 0.0,
+    "p01": 0.0,
+    "p05": 0.0,
+    "p25": 0.0,
+    "median": 0.0,
+    "p75": 0.5738,
+    "p95": 15.7442,
+    "p99": 34.0984,
+    "max": 227.4901,
+    "mean": 2.4584,
+    "std": 7.3154
+  },
+  "missing_fraction_by_timestep": {
+    "min": 0.4433,
+    "max": 0.4433,
+    "mean": 0.4433,
+    "n_timesteps_above_20pct": 11323,
+    "n_timesteps_above_50pct": 0
+  },
+  "source_file": "D:\\IRLI\\climate-agent\\data\\merged_files\\ethiopia_pr_ssp245_2040_2070_025deg_clipped.nc"
+}
