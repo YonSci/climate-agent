@@ -444,9 +444,9 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
 </head>
 <body>
   <header class='page-header'>
-    <h1>Climate Data Harmonization Agent — Run Report</h1>
-    <div class='subtitle'>Ethiopia · Kenya · Somalia &nbsp;|&nbsp;
-      AgERA5 · CHIRPS · ISIMIP &nbsp;|&nbsp; ILRI Climate Services</div>
+    <h1>AI Climate Data Harmonization Agent</h1>
+    <div class='subtitle'>ILRI Livestock, Climate and Environment Services &nbsp;|&nbsp;
+    ILRI Climate Services</div>
     <div class='generated'>Generated {generated_at}</div>
   </header>
 
