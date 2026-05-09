@@ -178,7 +178,6 @@ def _render_stage(stage: dict) -> str:
     attempt = stage.get("attempt", 1)
     exit_code = stage.get("exit_code", "?")
 
-    detail_id = f"stage-{stage.get('stage','s')}-{stage.get('country','')}-{stage.get('variable','')}"
     return f"""
     <details class='stage-detail'>
       <summary>
@@ -221,18 +220,17 @@ def _render_run(m: dict) -> str:
 
     stages_html = "".join(_render_stage(s) for s in stages)
 
-    # Embed diagnostic PNGs
     plots_html = ""
     for p in diag_files:
         src = embed_image(p)
         label = Path(p).name
         if src:
-            plots_html += f'<figure><img src="{src}" alt="{label}"><figcaption>{label}</figcaption></figure>'
+            plots_html += f'<figure><img src="{src}" alt="{label}" loading="lazy"><figcaption>{label}</figcaption></figure>'
     if plots_html:
         plots_html = f'<div class="plots">{plots_html}</div>'
 
     return f"""
-  <details class='run-card' id='{run_id}'>
+  <details class='run-card' id='{run_id}' data-status='{overall}'>
     <summary>
       <div class='run-summary-row'>
         <div>{_badge(overall)} <span class='run-id'>{run_id}</span></div>
@@ -269,7 +267,7 @@ def _render_inventory(inventory: list[dict]) -> str:
     rows = []
     for row in inventory:
         rows.append(
-            f"<tr>"
+            f"<tr data-status='{row['status']}'>"
             f"<td>{row['country']}</td>"
             f"<td><code>{row['variable']}</code></td>"
             f"<td>{row['scenario']}</td>"
@@ -277,18 +275,145 @@ def _render_inventory(inventory: list[dict]) -> str:
             f"<td>{_badge(row['status'])}</td>"
             f"<td><a href='#{row['run_id']}'>{row['run_id']}</a></td>"
             f"<td>{row['timestamp']}</td>"
-            f"<td>{row['duration']:.0f}s</td>"
+            f"<td data-val='{row['duration']:.0f}'>{row['duration']:.0f}s</td>"
             f"</tr>"
         )
+    headers = ["Country", "Variable", "Scenario", "Period", "Status", "Run ID", "Date", "Duration"]
+    th_html = "".join(
+        f"<th data-col='{i}'>{h} <span class='sort-icon'>⇅</span></th>"
+        for i, h in enumerate(headers)
+    )
     return f"""
-  <table class='inv-table'>
-    <thead><tr>
-      <th>Country</th><th>Variable</th><th>Scenario</th><th>Period</th>
-      <th>Status</th><th>Run ID</th><th>Date</th><th>Duration</th>
-    </tr></thead>
-    <tbody>{''.join(rows)}</tbody>
-  </table>"""
+  <div class='table-toolbar'>
+    <div class='filter-group'>
+      <input type='search' id='inv-search' placeholder='Search…' oninput='filterInventory()'>
+      <div class='status-filters'>
+        <button class='filter-btn active' onclick='setStatusFilter(this,"")'>All</button>
+        <button class='filter-btn' onclick='setStatusFilter(this,"SUCCESS")'>✓ Success</button>
+        <button class='filter-btn' onclick='setStatusFilter(this,"FAILED")'>✗ Failed</button>
+        <button class='filter-btn' onclick='setStatusFilter(this,"WARNING")'>⚠ Warning</button>
+      </div>
+    </div>
+    <button class='export-btn' onclick='exportCSV()'>⬇ Export CSV</button>
+  </div>
+  <div class='table-wrap'>
+    <table class='inv-table' id='inv-table'>
+      <thead><tr>{th_html}</tr></thead>
+      <tbody>{''.join(rows)}</tbody>
+    </table>
+  </div>
+  <div id='inv-count' class='table-count'></div>"""
 
+
+# ── JavaScript ────────────────────────────────────────────────────────────────
+
+_JS = """
+// ── Sortable tables ──────────────────────────────────────────────────────────
+(function() {
+  var _sortCol = -1, _sortAsc = true;
+
+  function sortTable(table, col) {
+    var asc = (_sortCol === col) ? !_sortAsc : true;
+    _sortCol = col; _sortAsc = asc;
+
+    var tbody = table.querySelector('tbody');
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort(function(a, b) {
+      var ac = a.cells[col], bc = b.cells[col];
+      var av = (ac.dataset.val !== undefined ? ac.dataset.val : ac.innerText).trim();
+      var bv = (bc.dataset.val !== undefined ? bc.dataset.val : bc.innerText).trim();
+      var an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+      return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+    rows.forEach(function(r) { tbody.appendChild(r); });
+
+    table.querySelectorAll('th').forEach(function(th, i) {
+      var icon = th.querySelector('.sort-icon');
+      if (!icon) return;
+      icon.textContent = (i === col) ? (asc ? '▲' : '▼') : '⇅';
+      th.classList.toggle('th-sorted', i === col);
+    });
+  }
+
+  function initSortable(table) {
+    table.querySelectorAll('th[data-col]').forEach(function(th) {
+      th.style.cursor = 'pointer';
+      th.title = 'Click to sort';
+      th.addEventListener('click', function() {
+        sortTable(table, parseInt(th.dataset.col));
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.inv-table').forEach(initSortable);
+  });
+})();
+
+// ── Inventory filter ─────────────────────────────────────────────────────────
+var _statusFilter = '';
+
+function filterInventory() {
+  var q = (document.getElementById('inv-search').value || '').toLowerCase();
+  var rows = document.querySelectorAll('#inv-table tbody tr');
+  var visible = 0;
+  rows.forEach(function(row) {
+    var textMatch = !q || row.innerText.toLowerCase().includes(q);
+    var statusMatch = !_statusFilter || (row.dataset.status || '') === _statusFilter;
+    var show = textMatch && statusMatch;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  var cnt = document.getElementById('inv-count');
+  if (cnt) cnt.textContent = visible + ' of ' + rows.length + ' rows';
+}
+
+function setStatusFilter(btn, status) {
+  _statusFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(function(b) {
+    b.classList.toggle('active', b === btn);
+  });
+  filterInventory();
+}
+
+// ── CSV export ───────────────────────────────────────────────────────────────
+function exportCSV() {
+  var table = document.getElementById('inv-table');
+  if (!table) return;
+  var rows = Array.from(table.querySelectorAll('tr'));
+  var csv = rows
+    .filter(function(r) { return r.style.display !== 'none'; })
+    .map(function(r) {
+      return Array.from(r.querySelectorAll('th,td'))
+        .map(function(c) { return '"' + c.innerText.replace(/"/g,'""').trim() + '"'; })
+        .join(',');
+    }).join('\\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'climate_inventory.csv';
+  a.click();
+}
+
+// ── Expand / Collapse All ────────────────────────────────────────────────────
+function expandAll(open) {
+  document.querySelectorAll('#run-history .run-card').forEach(function(d) {
+    d.open = open;
+  });
+}
+
+function filterRuns() {
+  var status = document.getElementById('run-status-filter').value;
+  document.querySelectorAll('#run-history .run-card').forEach(function(d) {
+    d.style.display = (!status || d.dataset.status === status) ? '' : 'none';
+  });
+}
+
+// ── Init count ───────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  filterInventory();
+});
+"""
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 
@@ -322,7 +447,10 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
 .stat-card { background: #fff; border-radius: 10px; padding: 16px 22px;
              box-shadow: 0 1px 4px rgba(0,0,0,.08); min-width: 130px; }
 .stat-card .num { font-size: 28px; font-weight: 700; color: #2563eb; }
-.stat-card .lbl { font-size: 11px; color: #6b7280; margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+.stat-card .num.green { color: #16a34a; }
+.stat-card .num.red   { color: #dc2626; }
+.stat-card .lbl { font-size: 11px; color: #6b7280; margin-top: 2px;
+                  text-transform: uppercase; letter-spacing: .5px; }
 
 /* Badges */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 12px;
@@ -341,16 +469,53 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
 .pill-warn { background: #fef9c3; color: #854d0e; }
 .pill-skip { background: #f1f5f9; color: #64748b; }
 
+/* Table toolbar */
+.table-toolbar { display: flex; justify-content: space-between; align-items: center;
+                 flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.filter-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+#inv-search { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+              font-size: 13px; width: 200px; outline: none; }
+#inv-search:focus { border-color: #2563eb; box-shadow: 0 0 0 2px #dbeafe; }
+.status-filters { display: flex; gap: 4px; }
+.filter-btn { padding: 5px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+              font-size: 11px; font-weight: 500; cursor: pointer; background: #fff;
+              color: #374151; transition: all .15s; }
+.filter-btn:hover { background: #f3f4f6; }
+.filter-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+.export-btn { padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+              font-size: 12px; cursor: pointer; background: #fff; color: #374151;
+              font-weight: 500; transition: all .15s; }
+.export-btn:hover { background: #f3f4f6; }
+.table-count { font-size: 11px; color: #9ca3af; margin-top: 6px; }
+
 /* Inventory table */
-.inv-table { width: 100%; border-collapse: collapse; background: #fff;
-             border-radius: 10px; overflow: hidden;
-             box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.table-wrap { overflow-x: auto; border-radius: 10px;
+              box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.inv-table { width: 100%; border-collapse: collapse; background: #fff; }
+.inv-table thead { position: sticky; top: 0; z-index: 1; }
 .inv-table th { background: #f8fafc; font-size: 11px; text-transform: uppercase;
                 letter-spacing: .5px; color: #6b7280; padding: 10px 14px;
-                text-align: left; border-bottom: 1px solid #e5e7eb; }
+                text-align: left; border-bottom: 2px solid #e5e7eb;
+                white-space: nowrap; user-select: none; }
+.inv-table th:hover { background: #f1f5f9; color: #374151; }
+.inv-table th.th-sorted { color: #2563eb; }
+.sort-icon { font-size: 10px; opacity: 0.5; margin-left: 3px; }
+.inv-table th.th-sorted .sort-icon { opacity: 1; }
 .inv-table td { padding: 9px 14px; border-bottom: 1px solid #f1f5f9; }
 .inv-table tr:last-child td { border-bottom: none; }
-.inv-table tr:hover td { background: #f8fafc; }
+.inv-table tbody tr:hover td { background: #f8fafc; }
+
+/* Run history toolbar */
+.run-toolbar { display: flex; justify-content: space-between; align-items: center;
+               flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.run-toolbar-left { display: flex; gap: 6px; align-items: center; }
+.run-toolbar select { padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 6px;
+                      font-size: 12px; background: #fff; cursor: pointer; }
+.run-toolbar-right { display: flex; gap: 6px; }
+.ctrl-btn { padding: 5px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 11px; font-weight: 500; cursor: pointer; background: #fff;
+            color: #374151; transition: all .15s; }
+.ctrl-btn:hover { background: #f3f4f6; }
 
 /* Run cards */
 .run-card { background: #fff; border-radius: 10px; margin-bottom: 10px;
@@ -360,7 +525,8 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
 .run-card > summary:hover { background: #f8fafc; }
 .run-card > summary::-webkit-details-marker { display: none; }
 .run-summary-row { display: flex; align-items: center;
-                   justify-content: space-between; width: 100%; gap: 12px; flex-wrap: wrap; }
+                   justify-content: space-between; width: 100%; gap: 12px;
+                   flex-wrap: wrap; }
 .run-id { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px;
           color: #374151; margin-left: 8px; }
 .run-meta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
@@ -372,7 +538,8 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
 .stage-detail { margin-bottom: 8px; border: 1px solid #e5e7eb;
                 border-radius: 8px; overflow: hidden; }
 .stage-detail > summary { padding: 8px 14px; cursor: pointer; background: #f8fafc;
-                          list-style: none; display: flex; align-items: center; gap: 8px; }
+                          list-style: none; display: flex; align-items: center;
+                          gap: 8px; }
 .stage-detail > summary:hover { background: #f1f5f9; }
 .stage-detail > summary::-webkit-details-marker { display: none; }
 .stage-body { padding: 12px 14px; }
@@ -392,7 +559,8 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
            padding: 12px 16px; margin: 10px 0; }
 .qc-title { font-family: monospace; font-size: 11px; color: #6b7280;
             margin-bottom: 10px; }
-.qc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+.qc-grid { display: grid;
+           grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
            gap: 6px 20px; }
 .qc-item { font-size: 12px; color: #374151; }
 .qc-label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px;
@@ -420,16 +588,36 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
 
     total_runs = len(manifests)
     total_failed = sum(1 for m in manifests if m.get("summary", {}).get("failed", 0) > 0)
+    total_ok = total_runs - total_failed
     total_outputs = len(inventory)
     last_run = manifests[0].get("timestamp", "")[:10] if manifests else "—"
+    success_rate = f"{total_ok / total_runs * 100:.0f}%" if total_runs else "—"
 
     stat_cards = f"""
     <div class='stat-row'>
       <div class='stat-card'><div class='num'>{total_runs}</div><div class='lbl'>Total runs</div></div>
-      <div class='stat-card'><div class='num'>{total_failed}</div><div class='lbl'>Failed runs</div></div>
-      <div class='stat-card'><div class='num'>{total_runs - total_failed}</div><div class='lbl'>Successful runs</div></div>
+      <div class='stat-card'><div class='num green'>{total_ok}</div><div class='lbl'>Successful</div></div>
+      <div class='stat-card'><div class='num{"  red" if total_failed else ""}'>{total_failed}</div><div class='lbl'>Failed</div></div>
+      <div class='stat-card'><div class='num'>{success_rate}</div><div class='lbl'>Success rate</div></div>
       <div class='stat-card'><div class='num'>{total_outputs}</div><div class='lbl'>Known outputs</div></div>
       <div class='stat-card'><div class='num'>{last_run}</div><div class='lbl'>Last run</div></div>
+    </div>"""
+
+    run_toolbar = """
+    <div class='run-toolbar'>
+      <div class='run-toolbar-left'>
+        <label style='font-size:12px;color:#6b7280'>Filter:</label>
+        <select id='run-status-filter' onchange='filterRuns()'>
+          <option value=''>All statuses</option>
+          <option value='SUCCESS'>✓ Success</option>
+          <option value='FAILED'>✗ Failed</option>
+          <option value='WARNING'>⚠ Warning</option>
+        </select>
+      </div>
+      <div class='run-toolbar-right'>
+        <button class='ctrl-btn' onclick='expandAll(true)'>Expand all</button>
+        <button class='ctrl-btn' onclick='expandAll(false)'>Collapse all</button>
+      </div>
     </div>"""
 
     runs_html = "\n".join(_render_run(m) for m in manifests)
@@ -445,7 +633,7 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
 <body>
   <header class='page-header'>
     <h1>AI Climate Data Harmonization Agent</h1>
-    <div class='subtitle'>ILRI Livestock, Climate and Environment Services &nbsp;</div>
+    <div class='subtitle'>ILRI Livestock, Climate and Environment Services</div>
     <div class='generated'>Generated {generated_at}</div>
   </header>
 
@@ -459,9 +647,14 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
 
     <section>
       <h2>Run History</h2>
-      {runs_html if runs_html.strip() else "<p class='muted'>No runs found.</p>"}
+      {run_toolbar}
+      <div id='run-history'>
+        {runs_html if runs_html.strip() else "<p class='muted'>No runs found.</p>"}
+      </div>
     </section>
   </div>
+
+  <script>{_JS}</script>
 </body>
 </html>"""
 
