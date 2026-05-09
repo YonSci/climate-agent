@@ -842,7 +842,7 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
         <div class='about-card'>
           <div class='about-icon'>🌍</div>
           <div class='about-title'>Coverage</div>
-          <div class='about-body'>Ethiopia, Kenya and Somalia — East Africa's most climate-vulnerable pastoralist zones.</div>
+          <div class='about-body'>Ethiopia, Kenya and Somalia.</div>
         </div>
         <div class='about-card'>
           <div class='about-icon'>📊</div>
@@ -904,7 +904,7 @@ def generate_html(manifests: list[dict], generated_at: str) -> str:
       <div class='header-logo'>{_ILRI_LOGO_SVG}</div>
       <div class='header-text'>
         <h1>AI Climate Data Agent</h1>
-        <div class='subtitle'>ILRI Livestock, Climate and Environment Services · East Africa</div>
+        <div class='subtitle'>ILRI Livestock, Climate and Environment Services</div>
         <div class='generated'>Generated {generated_at}</div>
       </div>
     </div>
