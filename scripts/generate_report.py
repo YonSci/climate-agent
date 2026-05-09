@@ -710,6 +710,27 @@ h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px;
                                           color: #94a3b8; }
 [data-theme="dark"] .about-body { color: #94a3b8; }
 [data-theme="dark"] a { color: #60a5fa; }
+[data-theme="dark"] .about-title { color: #f1f5f9; }
+[data-theme="dark"] .stat-card .lbl { color: #94a3b8; }
+[data-theme="dark"] .run-id { color: #cbd5e1; }
+[data-theme="dark"] .run-meta { color: #94a3b8; }
+[data-theme="dark"] .run-card > summary:hover { background: #1e293b; }
+[data-theme="dark"] .stage-detail > summary:hover { background: #1e293b; }
+[data-theme="dark"] .qc-title { color: #94a3b8; }
+[data-theme="dark"] .qc-item { color: #cbd5e1; }
+[data-theme="dark"] .qc-label { color: #64748b; }
+[data-theme="dark"] .check-name { color: #94a3b8; }
+[data-theme="dark"] .file-label { color: #64748b; }
+[data-theme="dark"] .env-row { color: #64748b; }
+[data-theme="dark"] .muted { color: #64748b; }
+[data-theme="dark"] .table-count { color: #64748b; }
+[data-theme="dark"] .filter-btn:hover,
+[data-theme="dark"] .export-btn:hover,
+[data-theme="dark"] .ctrl-btn:hover { background: #334155; color: #e2e8f0; }
+[data-theme="dark"] .inv-table th:hover { background: #1e293b; color: #94a3b8; }
+[data-theme="dark"] .plots img { border-color: #334155; }
+[data-theme="dark"] .error-block { background: #2d1515; color: #fca5a5;
+                                    border-left-color: #ef4444; }
 
 /* Print */
 @media print {
