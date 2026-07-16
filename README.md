@@ -21,6 +21,13 @@
 
 *Dashboard overview showing operational run statistics, supported coverage, climate variables, data sources, and quality-assurance information. Select the image to open the live dashboard.*
 
+quality-control statistics and diagnostic plots;
+
+### Automated validation, diagnostics, and run reports
+
+[![AI Climate Data Agent dashboard overview](docs/images/dashboard-inventory-detail.png)](https://yonsci.github.io/climate-agent/)
+
+
 <details>
 <summary><strong>View the data inventory</strong></summary>
 
@@ -491,20 +498,6 @@ Use [Discussions](https://github.com/YonSci/climate-agent/discussions) for quest
 The `docs/wiki/` directory contains starter pages for getting started, architecture and workflows, Climate Data Hub integration, validation and evidence, and frequently asked questions.
 
 Keep stable tutorials and methods in the Wiki, track actionable work in Issues, and use Discussions for collaborative questions and ideas. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
-
----
-
-## GESI and responsible implementation
-
-The associated result has a **GESI tag of 1 — Significant**. The software alone does not establish a GESI outcome, but implementation can support inclusive access and accountable use by:
-
-- documenting user groups and barriers to climate-data access;
-- providing clear examples, reusable configuration, and training for different technical backgrounds;
-- considering low-bandwidth or offline delivery options;
-- recording participation of women, youth, and underrepresented groups where appropriate and lawful;
-- avoiding presentation of model-ready data as decision-ready advice without interpretation;
-- documenting uncertainty, limitations, licences, and responsible-use conditions; and
-- capturing stakeholder needs and changes through Issues and Discussions without publishing personal information.
 
 ---
 
