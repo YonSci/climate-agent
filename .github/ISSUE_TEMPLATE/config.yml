@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and implementation discussions
+    url: https://github.com/YonSci/climate-agent/discussions
+    about: Ask usage questions, share workflows, and discuss ideas after GitHub Discussions is enabled.
+  - name: Project documentation and Wiki
+    url: https://github.com/YonSci/climate-agent/wiki
+    about: Read methods, tutorials, integration guidance, and operational notes after the Wiki is enabled.

@@ -1,0 +1,80 @@
+name: Bug report
+description: Report a reproducible software, workflow, validation, or documentation problem.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve the Climate Data Harmonization Agent. Do not include passwords, API keys, restricted data, or sensitive information.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem summary
+      description: Describe what went wrong and why it matters.
+      placeholder: A clear and concise description of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or workflow
+      description: Paste the command used or identify the workflow stage. Remove credentials and private paths where necessary.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happened instead? Include the relevant error message or short log excerpt.
+    validations:
+      required: true
+
+  - type: input
+    id: run_id
+    attributes:
+      label: Run ID
+      description: Provide the run ID when available, for example run_20260507_212038.
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include operating system, Python version, installation method, and package version or commit SHA.
+      placeholder: |
+        OS: Windows 11 / Ubuntu / macOS
+        Python: 3.11
+        Climate Agent version or commit:
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence
+      description: Add links to a public manifest, diagnostic image, or minimal reproducible example. Do not upload restricted datasets.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I removed credentials, private data, and restricted source files.
+          required: true
+        - label: I can reproduce the problem with the information provided.
+          required: true
