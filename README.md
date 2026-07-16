@@ -14,6 +14,28 @@
 
 ### [Open the Climate Data Harmonization Dashboard](https://yonsci.github.io/climate-agent/)
 
+[![AI Climate Data Agent dashboard overview](docs/images/dashboard-overview.svg)](https://yonsci.github.io/climate-agent/)
+
+*Dashboard preview showing operational run statistics, supported coverage, climate variables, data sources, and quality-assurance information. Select the image to open the live dashboard.*
+
+<details>
+<summary><strong>View the data inventory</strong></summary>
+
+[![AI Climate Data Agent data inventory](docs/images/dashboard-inventory.svg)](https://yonsci.github.io/climate-agent/)
+
+*Representative inventory view showing country, variable, scenario, period, processing status, run identifier, date, and duration.*
+
+</details>
+
+<details>
+<summary><strong>View the run history</strong></summary>
+
+[![AI Climate Data Agent run history](docs/images/dashboard-run-history.svg)](https://yonsci.github.io/climate-agent/)
+
+*Representative run-history view showing completed workflows, requested variables and scenarios, execution duration, and stage-level outcomes.*
+
+</details>
+
 The GitHub Pages dashboard is the public, human-readable evidence interface for the tool. It is generated from committed run manifests and associated diagnostic products and can be used to review:
 
 - the current climate-data inventory;
