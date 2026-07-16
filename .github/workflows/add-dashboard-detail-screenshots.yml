@@ -1,0 +1,75 @@
+name: Add dashboard detail screenshots to README
+
+on:
+  push:
+    branches:
+      - agent/add-dashboard-screenshots
+    paths:
+      - docs/images/dashboard-inventory.svg
+      - docs/images/dashboard-run-history.svg
+      - .github/workflows/add-dashboard-detail-screenshots.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/add-dashboard-screenshots
+          fetch-depth: 0
+
+      - name: Insert expandable dashboard views
+        shell: python
+        run: |
+          from pathlib import Path
+
+          readme = Path("README.md")
+          text = readme.read_text(encoding="utf-8")
+
+          marker = "*Dashboard preview showing operational run statistics, supported coverage, climate variables, data sources, and quality-assurance information. Select the image to open the live dashboard.*"
+          addition = """*Dashboard preview showing operational run statistics, supported coverage, climate variables, data sources, and quality-assurance information. Select the image to open the live dashboard.*
+
+          <details>
+          <summary><strong>View the data inventory</strong></summary>
+
+          [![AI Climate Data Agent data inventory](docs/images/dashboard-inventory.svg)](https://yonsci.github.io/climate-agent/)
+
+          *Representative inventory view showing country, variable, scenario, period, processing status, run identifier, date, and duration.*
+
+          </details>
+
+          <details>
+          <summary><strong>View the run history</strong></summary>
+
+          [![AI Climate Data Agent run history](docs/images/dashboard-run-history.svg)](https://yonsci.github.io/climate-agent/)
+
+          *Representative run-history view showing completed workflows, requested variables and scenarios, execution duration, and stage-level outcomes.*
+
+          </details>"""
+
+          if "docs/images/dashboard-inventory.svg" not in text:
+              if marker not in text:
+                  raise SystemExit("Dashboard preview caption was not found in README.md")
+              text = text.replace(marker, addition, 1)
+              readme.write_text(text, encoding="utf-8")
+
+      - name: Remove one-time helper workflow
+        run: rm .github/workflows/add-dashboard-detail-screenshots.yml
+
+      - name: Commit README detail views
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md .github/workflows/add-dashboard-detail-screenshots.yml
+          if git diff --cached --quiet; then
+            echo "No README update was required."
+            exit 0
+          fi
+          git commit -m "Add dashboard detail screenshots to README"
+          git push origin HEAD:agent/add-dashboard-screenshots
