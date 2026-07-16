@@ -21,8 +21,6 @@
 
 *Dashboard overview showing operational run statistics, supported coverage, climate variables, data sources, and quality-assurance information. Select the image to open the live dashboard.*
 
-quality-control statistics and diagnostic plots;
-
 ### Automated validation, diagnostics, and run reports
 
 [![AI Climate Data Agent dashboard overview](docs/images/dashboard-inventory-detail.png)](https://yonsci.github.io/climate-agent/)
