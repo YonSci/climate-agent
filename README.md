@@ -2,7 +2,6 @@
 
 ## Climate Data Harmonization Agent for Automated Acquisition, Standardization, Validation and Delivery of Climate Data
 
-# Climate Data Harmonization Agent
 
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-Open-2ea44f?logo=github)](https://yonsci.github.io/climate-agent/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.md)
