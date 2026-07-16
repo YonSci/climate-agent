@@ -106,14 +106,10 @@ This repository is designed to contribute to the following ILRI 2026 result.
 |---|---|
 | **Result level** | Output |
 | **Center** | ILRI |
-| **Result ID** | 11 |
 | **Result short name** | Develop methods and pipelines for user-centred outputs and integrate ILRI climate-relevant analytical methods and pipelines within the Climate Data Hub. |
 | **Indicator** | Number of frameworks, strategies, or tools developed and shared |
 | **Standard result type** | Innovation development |
-| **2026 target** | 2 |
-| **GESI tag** | 1 — Significant |
 | **HLO contribution** | Harmonized data, simulations, insights, and decision-support tools for understanding climate risks, emission hotspots, and multidimensional trade-offs, co-developed and shared with stakeholders. |
-| **Package ID** | M2 |
 
 ### How the tool contributes
 
