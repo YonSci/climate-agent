@@ -51,6 +51,7 @@ climate-agent = "run_agent:main"
 
 [project.urls]
 Repository = "https://github.com/YonSci/climate-agent"
+Dashboard = "https://yonsci.github.io/climate-agent/"
 Issues = "https://github.com/YonSci/climate-agent/issues"
 Discussions = "https://github.com/YonSci/climate-agent/discussions"
 Documentation = "https://github.com/YonSci/climate-agent/wiki"
